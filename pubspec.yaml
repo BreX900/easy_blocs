@@ -2,8 +2,8 @@ name: easy_blocs
 description: A new Flutter project.
 version: 0.0.1
 author: Simone Bressan
-homepage: 
-
+homepage: https://github.com/BreX900/easy_blocs
+# flutter packages pub publish
 environment:
   sdk: ">=2.1.0 <3.0.0"
 
