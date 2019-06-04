@@ -1,3 +1,4 @@
+import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/rxdart_cache/CacheObservable.dart';
 import 'package:flutter/widgets.dart';
 
@@ -7,14 +8,14 @@ class CacheStreamBuilder<T> extends StreamBuilderBase<T, AsyncSnapshot<T>> {
   /// snapshot of interaction with the specified [stream] and whose build
   /// strategy is given by [builder].
   ///
-  /// The [initialData] is used to create the initial snapshot.
+  /// The initial snapshot is last data in [CacheObservable]
   ///
   /// The [builder] must not be null.
   CacheStreamBuilder({
     Key key,
     @required CacheObservable<T> stream,
     @required this.builder,
-  }) : assert(builder != null),
+  }) : assert(stream is CacheObservable, "The [StreamController] must is [CacheSubject]"), assert(builder != null),
         super(key: key, stream: stream);
 
   /// The build strategy currently used by this builder.
