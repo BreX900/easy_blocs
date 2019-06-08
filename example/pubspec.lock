@@ -60,10 +60,10 @@ packages:
   easy_widget:
     dependency: transitive
     description:
-      name: easy_widget
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.1+15"
+      path: "..\\..\\easy_packages"
+      relative: true
+    source: path
+    version: "0.0.1+16"
   flutter:
     dependency: "direct main"
     description: flutter

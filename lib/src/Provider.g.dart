@@ -14,6 +14,10 @@ class $Provider extends Provider {
           return BlocCache.getBlocInstance(
               "TranslatorBloc", () => TranslatorBloc.instance());
         }
+      case SpBloc:
+        {
+          return BlocCache.getBlocInstance("SpBloc", () => SpBloc.instance());
+        }
     }
     return null;
   }
@@ -23,6 +27,11 @@ class $Provider extends Provider {
       case TranslatorBloc:
         {
           BlocCache.dispose("TranslatorBloc");
+          break;
+        }
+      case SpBloc:
+        {
+          BlocCache.dispose("SpBloc");
           break;
         }
     }

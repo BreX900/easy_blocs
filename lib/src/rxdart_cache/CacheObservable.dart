@@ -2,15 +2,25 @@ import 'package:rxdart/rxdart.dart';
 
 
 /// An [Observable] that provides synchronous access to the last emitted item
-abstract class CacheObservable<T> implements Observable<T> {
+class CacheObservable<T> extends Observable<T> {
   /// Last emitted value, or null if there has been no emission yet
   /// See [hasValue]
-  T get value;
+  /// Get the latest value emitted by the Subject
 
-  bool get hasValue;
-
-  Object get error;
-  StackTrace get stackTrace;
+  T latestValue;
+  Object latestError;
+  StackTrace latestStackTrace;
 
   bool latestIsValue = false, latestIsError = false;
+
+  CacheObservable(Stream<T> stream) : super(stream);
+
+  T get value => latestValue;
+
+  bool get hasValue => latestIsValue;
+
+  Object get error => latestError;
+  StackTrace get stackTrace => latestStackTrace;
+
+
 }

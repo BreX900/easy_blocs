@@ -42,7 +42,7 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
 
   bool latestIsValue = false, latestIsError = false;
 
-  CacheSubject._(
+  CacheSubject.internal(
       StreamController<T> controller,
       Observable<T> observable,
       this.latestValue,
@@ -65,14 +65,18 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
       sync: sync,
     );
 
-    return CacheSubject<T>._(
+    return CacheSubject<T>.internal(
       controller,
       Observable<T>(controller.stream),
       value,
     );
   }
 
-
+  @override
+  StreamSubscription<T> listen(void Function(T event) onData, {Function onError, void Function() onDone, bool cancelOnError}) {
+    latestIsError ? onError(error) : onData(value);
+    return super.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  }
 
   @override
   void onAdd(T event) {

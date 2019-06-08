@@ -26,7 +26,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  final translationBloc = TranslatorBloc.of()..init(deviceLc: Locale('it'));
+  final translationBloc = TranslatorBloc.of();
 
   @override
   Widget build(BuildContext context) {

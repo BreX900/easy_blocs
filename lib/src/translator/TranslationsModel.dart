@@ -8,7 +8,7 @@ import 'package:json_annotation/json_annotation.dart';
 /// con parametri (anyMap: true, explicitToJson: true)
 @JsonSerializable(createFactory: false, createToJson: false,)
 class Translations extends MapBase<String, String>{
-  final HashMap<String, String> _map;
+  final Map<String, String> _map;
 
   Translations({String it, String en}) : this._map = HashMap() {
     if (it != null && it.isNotEmpty) _map['it'] = it;
@@ -35,6 +35,17 @@ class Translations extends MapBase<String, String>{
   @override
   String remove(Object key) => _map.remove(key);
 
-  Translations.fromJson(HashMap<String, String> map) : this._map = map;
+  Translations.fromJson(Map<String, String> map) : this._map = map;
   Map<String, dynamic> toJson() => _map;
 }
+
+/*class CustomDateTimeConverter implements JsonConverter<Translations, String> {
+  const CustomDateTimeConverter();
+
+  @override
+  CustomDateTime fromJson(String json) =>
+      json == null ? null : Translations.fromJson(json);
+
+  @override
+  String toJson(CustomDateTime object) => object.toIso8601String();
+}*/

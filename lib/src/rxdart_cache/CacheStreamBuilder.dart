@@ -13,20 +13,30 @@ class CacheStreamBuilder<T> extends StreamBuilderBase<T, AsyncSnapshot<T>> {
   /// The [builder] must not be null.
   CacheStreamBuilder({
     Key key,
-    @required CacheObservable<T> stream,
+    this.initialData,
+    @required Stream<T> stream,
     @required this.builder,
-  }) : assert(stream is CacheObservable, "The [StreamController] must is [CacheSubject]"), assert(builder != null),
+  }) : assert(builder != null),
         super(key: key, stream: stream);
 
   /// The build strategy currently used by this builder.
   final AsyncWidgetBuilder<T> builder;
 
+  final T initialData;
+
   @override
   AsyncSnapshot<T> initial() {
-    final observable = stream as CacheObservable<T>;
-    return observable.latestIsError ?
-    AsyncSnapshot<T>.withError(ConnectionState.none, observable.error) :
-    AsyncSnapshot<T>.withData(ConnectionState.none, observable.value);
+    if (initialData != null) {
+      return AsyncSnapshot<T>.withData(ConnectionState.none, initialData);
+    } else {
+      if (stream is CacheObservable<T>) {
+        final observable = stream as CacheObservable<T>;
+        return observable.latestIsError ?
+          AsyncSnapshot<T>.withError(ConnectionState.none, observable.error) :
+          AsyncSnapshot<T>.withData(ConnectionState.none, observable.value);
+      }
+      return AsyncSnapshot<T>.withData(ConnectionState.none, null);
+    }
   }
 
   @override
