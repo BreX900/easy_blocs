@@ -15,24 +15,26 @@ class EasyCartBloc implements Bloc {
     _cartControl.close();
   }
 
+  Cart _cart;
+
   void init({@required Cart cart}) {
-    _cartControl.add(cart);
+    _cartControl.add((_cart = cart));
   }
 
   CacheSubject<Cart> _cartControl = CacheSubject();
   Stream<Cart> get outCart => _cartControl.stream;
 
   Future<bool> inIncrement(String id) async {
-    return _save(_cartControl.value.increment(id));
+    return _save(_cart.increment(id));
   }
 
   Future<bool> inDecrease(String id) async {
-    return _save(_cartControl.value.decrease(id));
+    return _save(_cart.decrease(id));
   }
 
   bool _save(bool save) {
     if (autoUpdate && save) {
-      _cartControl.add(_cartControl.value);
+      _cartControl.add(_cart);
     }
     return save;
   }
@@ -41,8 +43,8 @@ class EasyCartBloc implements Bloc {
 
   void inIsEnable(bool isEnable) async {
     _isEnable = isEnable;
-    _cartControl.add(_isEnable ? _cartControl.value : null);
+    _cartControl.add(_isEnable ? _cart : null);
   }
 
-  EasyCartBloc.instance({this.autoUpdate: true});
+  EasyCartBloc.instance({this.autoUpdate: true, bool isEnable: true,}) : this._isEnable = isEnable;
 }

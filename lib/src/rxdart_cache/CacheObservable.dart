@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:rxdart/rxdart.dart';
 
 
@@ -22,5 +24,10 @@ class CacheObservable<T> extends Observable<T> {
   Object get error => latestError;
   StackTrace get stackTrace => latestStackTrace;
 
-
+  @override
+  StreamSubscription<T> listen(void onData(T event),
+      {Function onError, void onDone(), bool cancelOnError, initialData: false}) {
+    if (!initialData) latestIsError ? onError(error) : onData(value);
+    return super.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  }
 }

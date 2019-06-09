@@ -12,11 +12,11 @@ class Cart {
   Cart(this.products) : assert(products != null);
 
   ProductCart getProduct(String id) {
-    return products.firstWhere((item) => item.id == id);
+    return products.firstWhere((item) => item.id == id, orElse: () => null);
   }
 
   bool increment(String id) {
-    _update(getProduct(id), 1);
+    _update(getProduct(id)??ProductCart(id: id), 1);
     return true;
   }
 
@@ -32,8 +32,10 @@ class Cart {
   }
 
   _update(ProductCart product, int value) {
+    assert(product != null);
     products.remove(product);
-    products.add(ProductCart(
+    if (product.numItemsOrdered+value > 0)
+      products.add(ProductCart(
         numItemsOrdered: product.numItemsOrdered+value, id: product.id));
   }
 
@@ -45,12 +47,12 @@ class Cart {
 
 @JsonSerializable(anyMap: true, explicitToJson: true)
 class ProductCart {
-  final int numItemsOrdered;
-
   final String id;
 
+  final int numItemsOrdered;
+
   ProductCart({
-    this.numItemsOrdered: 0, @required this.id,
+    @required this.id, this.numItemsOrdered: 0,
   }): assert(numItemsOrdered != null), assert(id != null);
 
   @override
@@ -58,6 +60,8 @@ class ProductCart {
 
   @override
   int get hashCode => hash(id);
+
+  String toString() => "ProductCart(id: $id, numItemsOrdered: $numItemsOrdered)";
 
   static ProductCart fromJson(Map json) => _$ProductCartFromJson(json);
   Map<String, dynamic> toJson() => _$ProductCartToJson(this);

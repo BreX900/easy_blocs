@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:easy_blocs/src/rxdart_cache/utility.dart' as utility;
+import 'package:easy_blocs/src/rxdart_cache/CacheObservable.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'CacheObservable.dart';
 
 
 /// A special StreamController that captures the latest item that has been
@@ -73,12 +74,6 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
   }
 
   @override
-  StreamSubscription<T> listen(void Function(T event) onData, {Function onError, void Function() onDone, bool cancelOnError}) {
-    latestIsError ? onError(error) : onData(value);
-    return super.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-  }
-
-  @override
   void onAdd(T event) {
     latestIsValue = true;
     latestIsError = false;
@@ -116,4 +111,25 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
   Object get error => latestError;
 
   StackTrace get stackTrace => latestStackTrace;
+
+  @override
+  StreamSubscription<T> listen(void Function(T event) onData, {
+    Function onError, void Function() onDone, bool cancelOnError, initialData: false,
+  }) {
+    if (!initialData) latestIsError ? onError(error) : onData(value);
+    return super.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  }
+
+  StreamSubscription<T> _streamSubscription;
+  void catchStream(Stream<T> stream) {
+    assert(stream != null);
+    _streamSubscription?.cancel();
+    _streamSubscription = utility.catchStream(this, stream);
+  }
+  
+  @override
+  Future<dynamic> close() {
+    _streamSubscription?.cancel();
+    return super.close();
+  }
 }

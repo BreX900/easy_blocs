@@ -13,12 +13,16 @@ dependencies:
 
   rxdart: any
   dash: any
+
   shared_preferences: any
+  path_provider: any
 
   easy_widget:
     path: ../easy_packages
 
   json_annotation: any
+
+
 
 dev_dependencies:
   flutter_test:
