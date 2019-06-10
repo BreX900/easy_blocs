@@ -18,7 +18,8 @@ class EasyCartBloc implements Bloc {
   Cart _cart;
 
   void init({@required Cart cart}) {
-    _cartControl.add((_cart = cart));
+    _cart = cart;
+    _save(true);
   }
 
   CacheSubject<Cart> _cartControl = CacheSubject();
@@ -33,13 +34,13 @@ class EasyCartBloc implements Bloc {
   }
 
   bool _save(bool save) {
-    if (autoUpdate && save) {
+    if (autoUpdate && save && _isEnable) {
       _cartControl.add(_cart);
     }
     return save;
   }
 
-  bool _isEnable = true;
+  bool _isEnable;
 
   void inIsEnable(bool isEnable) async {
     _isEnable = isEnable;
