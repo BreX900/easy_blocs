@@ -19,7 +19,8 @@ dependencies:
   path_provider: any
 
   easy_widget:
-    path: ../easy_packages
+    git:
+      url: git://github.com/BreX900/easy_widget.git
 
   json_annotation: any
 
