@@ -24,7 +24,7 @@ dependencies:
 
   easy_widget:
     git:
-      url: https://github.com/BreX900/easy_widget
+      url: https://github.com/BreX900/easy_widget.git
 
   json_annotation: any
 
