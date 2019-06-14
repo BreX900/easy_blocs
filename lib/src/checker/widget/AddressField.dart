@@ -1,51 +1,42 @@
-import 'package:easy_blocs/easy_blocs.dart';
+import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
 import 'package:easy_blocs/src/checker/checkers/AddressChecker.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
-import 'package:easy_blocs/src/checker/widget/CheckerField.dart';
-import 'package:easy_blocs/src/utility.dart';
+import 'package:easy_blocs/src/checker/widget/StringField.dart';
+import 'package:easy_blocs/src/translator/TranslationsModel.dart';
+import 'package:easy_blocs/src/translator/Translator.dart';
+import 'package:easy_blocs/src/translator/Widgets.dart';
 import 'package:flutter/material.dart';
 
 
-class AddressField extends CheckerField<String, AddressAuthError> {
+class AddressField extends StringField {
 
   AddressField({Key key,
-    @required Checker<String, AddressAuthError> checker,
-    Translator<AddressAuthError> translator: translatorAddressField,
-    InputDecoration decoration: const InputDecoration(),
-    bool defaultDecoration,
+    @required CheckerRule<String, String> checker, @required Hand hand,
+    Translator translator: translatorAddressField,
+    InputDecoration decoration: ADDRESS_DECORATION,
   }) : assert(checker != null), super(key: key,
-    checker: checker, translator: translator,
-    decoration: mergeInputDecoration(decoration, addressDecoration, defaultDecoration,
-      hintText: addressHintText,
-    ),
+    checker: checker, hand: hand, translator: translator,
+    decoration: decoration,
   );
 
 }
 
-const addressDecoration = const InputDecoration(
-  prefixIcon: const Icon(Icons.home),
+const ADDRESS_DECORATION = const TranslationsInputDecoration(
+
 );
 
 
-final addressHintText = Translations(
-    it: "Indirizzo",
-    en: "Address"
-);
-
-Translations translatorAddressField(AddressAuthError error) {
+Translations translatorAddressField(Object error) {
   switch (error) {
-    case AddressAuthError.EMPTY: {
-      return Translations(
-        it: "Campo vuoto.",
-        en: "Empty field.",
-      );
-    }
     case AddressAuthError.INVALID: {
-      return Translations(
+      return const TranslationsConst(
           it: "Formato non appropriato.",
           en: "Bad Format."
       );
     }
-    default: return null;
+    default:
+      return translatorStringField(error);
   }
 }
+
+

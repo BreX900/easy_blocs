@@ -11,12 +11,12 @@ import 'package:meta/meta.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-typedef Translations Translator<V>(V value);
+typedef Translations Translator(Object value);
 
 
 const String _defaultTranslation = 'en';
 
-String translator(Map<String, String> translations) {
+String translator(Translations translations) {
   return translations[TranslatorBloc.of().outLocale.value.languageCode]??
       translations[_defaultTranslation]??
       translations.values.first;

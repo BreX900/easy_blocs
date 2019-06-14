@@ -1,17 +1,18 @@
+import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
-import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter/services.dart';
 
 
-class EmailChecker extends Checker<String, EmailAuthError> {
+class EmailChecker extends StringChecker {
   EmailChecker({@required Hand hand}) : super(hand: hand);
 
   @override
-  EmailAuthError validate(String value) {
-    if (value == null || value.isEmpty)
-      return EmailAuthError.EMPTY;
-    else if (!(value.contains('@') && value.split('@')[1].contains('.')))
+  Object validate(String str) {
+    final error = super.validate(str);
+    if (error != null)
+      return error;
+    if (!(str.contains('@') && str.split('@')[1].contains('.')))
       return EmailAuthError.INVALID;
     return null;
   }
@@ -20,15 +21,10 @@ class EmailChecker extends Checker<String, EmailAuthError> {
   final List<TextInputFormatter> inputFormatters = [
     WhitelistingTextInputFormatter(RegExp('[a-zA-Z0-9@.]')),
   ];
-
-  @override
-  String get value => data.text;
 }
 
 
 enum EmailAuthError {/// Delete error in stream [null]
-  /// Empty value
-  EMPTY,
   /// The email address is badly formatted.
   INVALID, /// [ERROR_INVALID_EMAIL]
   /// There is no user record corresponding to this identifier. The user may have been deleted.

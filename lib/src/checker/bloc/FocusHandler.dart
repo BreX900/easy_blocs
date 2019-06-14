@@ -1,4 +1,4 @@
-import 'package:easy_blocs/src/checker/bloc/SubmitBloc.dart';
+import 'package:easy_blocs/src/checker/controllers/SubmitController.dart';
 import 'package:flutter/widgets.dart';
 
 
@@ -18,6 +18,10 @@ class Hand {
   }
 
   void addFinger(Finger finger) => _fingers.contains(finger) ? null : _fingers.add(finger);
+
+  void dispose() {
+    _fingers.forEach((finger) => finger.dispose());
+  }
 }
 
 
@@ -26,28 +30,27 @@ abstract class Finger {
   Finger(Hand hand) : assert(hand != null) {
     hand.addFinger(this);
   }
-
-  void nextFinger(BuildContext context);
+  
   void acquire(BuildContext context);
+  void dispose() {}
 }
 
 
 class FingerNode extends Finger {
-  final Hand _hand;
   final FocusNode focusNode;
 
   FingerNode({
     @required Hand hand, FocusNode focusNode,
-  }) : this._hand = hand, this.focusNode = focusNode??FocusNode(), super(hand);
+  }) : this.focusNode = focusNode??FocusNode(), super(hand);
 
   @override
   void acquire(BuildContext context) {
-    FocusScope.of(context).requestFocus(focusNode);
+    FocusScope.of(context).autofocus(focusNode);
   }
 
-  @override
-  void nextFinger(BuildContext context) {
-    _hand.nextFinger(context, this);
+  @override @mustCallSuper
+  void dispose() {
+    focusNode.dispose();
   }
 }
 
@@ -59,12 +62,11 @@ class CallbackFinger extends Finger {
     @required this.onAcquire, @required Hand hand,
   }) : assert(onAcquire != null), super(hand);
 
-  CallbackFinger.bloc(SubmitBloc bloc) : assert(bloc != null), onAcquire = bloc.submit, super(bloc);
+  CallbackFinger.controller({
+    @required SubmitController controller, @required Hand hand,
+  }) : assert(controller != null), onAcquire = controller.onSubmit, super(hand);
 
   @override
   acquire(BuildContext context) => onAcquire();
-
-  @override
-  void nextFinger(BuildContext context) => null;
 }
 

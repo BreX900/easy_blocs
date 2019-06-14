@@ -1,40 +1,26 @@
 import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
-import 'package:easy_blocs/src/checker/checkers/Checker.dart';
+import 'package:easy_blocs/src/checker/checkers/IntChecker.dart';
 import 'package:meta/meta.dart';
-import 'package:flutter/services.dart';
 
-class PhoneNumberChecker extends Checker<int, PhoneNumAuthError> {
+
+class PhoneNumberChecker extends IntChecker {
   PhoneNumberChecker({
     @required Hand hand,
   }) : super(hand: hand);
 
   @override
-  PhoneNumAuthError validate(String str) {
-    if (str == null || str.isEmpty)
-      return PhoneNumAuthError.EMPTY;
-    else if(str.length != 10 || int.tryParse(str) == null)
-      return PhoneNumAuthError.INVALID;
+  Object validate(String str) {
+    if (super.validate(str) == null && str.length != 10)
+      return PhoneNumberFieldError.INVALID;
     return null;
   }
 
   @override
-  final List<TextInputFormatter> inputFormatters = [
-    WhitelistingTextInputFormatter(RegExp('[0-9]')),
-  ];
-
-  @override
   final int maxLength = 10;
-  //@override
-  //final int minLength = 10;
-
-  @override
-  int get value => int.tryParse(data.text);
 }
 
 
-enum PhoneNumAuthError {/// Delete error in stream [null]
-  /// Empty value
-  EMPTY,
+enum PhoneNumberFieldError {/// Delete error in stream [null]
   /// Badly formatted.
   INVALID,
 }

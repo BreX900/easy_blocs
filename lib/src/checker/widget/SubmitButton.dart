@@ -1,23 +1,29 @@
-import 'package:easy_blocs/easy_blocs.dart';
+import 'package:easy_blocs/src/checker/controllers/SubmitController.dart';
+import 'package:easy_blocs/src/rxdart_cache/CacheStreamBuilder.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 
+typedef Future<void> SubmitLogger(SubmitEvent event);
+
+
 class SubmitButton extends StatelessWidget {
-  final SubmitController bloc;
+  final SubmitController controller;
+  final SubmitLogger logger;
   final Widget child;
 
   SubmitButton({Key key,
-    @required this.child, @required this.bloc,
-  }) : assert(bloc != null), super(key: key);
+    @required this.controller, this.logger,
+    @required this.child,
+  }) : assert(controller != null), super(key: key);
 
   @override
   Widget build(BuildContext _) {
-    return CacheStreamBuilder<bool>(
-        stream: bloc.outSubmit,
+    return CacheStreamBuilder<SubmitData>(
+        stream: controller.outData,
         builder: (context, snap) {
-
           return RaisedButton(
-            onPressed: snap.data ? bloc.submit : null,
+            onPressed: snap.data.event == SubmitEvent.WAITING ? controller.onSubmit : null,
             child: child,
           );
         }
@@ -26,7 +32,3 @@ class SubmitButton extends StatelessWidget {
 }
 
 
-abstract class SubmitController {
-  Stream<bool> get outSubmit;
-  Future<void> submit();
-}

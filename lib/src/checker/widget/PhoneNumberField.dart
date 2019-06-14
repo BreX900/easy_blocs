@@ -1,53 +1,46 @@
-import 'package:easy_blocs/easy_blocs.dart';
+import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:easy_blocs/src/checker/checkers/PhoneNumberChecker.dart';
-import 'package:easy_blocs/src/checker/widget/CheckerField.dart';
-import 'package:easy_blocs/src/utility.dart';
+import 'package:easy_blocs/src/checker/widget/IntField.dart';
+import 'package:easy_blocs/src/translator/TranslationsModel.dart';
+import 'package:easy_blocs/src/translator/Translator.dart';
+import 'package:easy_blocs/src/translator/Widgets.dart';
 import 'package:flutter/material.dart';
 
 
-class PhoneNumberField extends CheckerField<String, PhoneNumAuthError> {
+class PhoneNumberField extends IntField {
 
   PhoneNumberField({Key key,
-    @required Checker<String, PhoneNumAuthError> checker,
-    Translator<PhoneNumAuthError> translator: translatorPhoneNumberField,
-    InputDecoration decoration: const InputDecoration(),
+    @required CheckerRule<int, String> checker, @required Hand hand,
+    Translator translator: translatorPhoneNumberField,
+    InputDecoration decoration: PHONE_NUMBER_DECORATION,
     bool defaultDecoration,
   }) : assert(checker != null), assert(decoration != null), super(key: key,
-    checker: checker, translator: translator,
-    decoration: mergeInputDecoration(decoration, phoneNumberDecoration, defaultDecoration,
-        hintText: phoneNumberHintText,
-    ),
+    checker: checker, hand: hand, translator: translator,
+    decoration: decoration,
   );
 
 }
 
 
-const phoneNumberDecoration = const InputDecoration(
+const PHONE_NUMBER_DECORATION = const TranslationsInputDecoration(
   prefixIcon: const Icon(Icons.phone),
+  translationsHintText: const TranslationsConst(
+      it: "Numero di Telefono",
+      en: "Phone Number"
+  ),
 );
 
 
-final phoneNumberHintText = Translations(
-    it: "Numero di Telefono",
-    en: "Phone Number"
-);
-
-
-Translations translatorPhoneNumberField(PhoneNumAuthError error) {
+Translations translatorPhoneNumberField(Object error) {
   switch (error) {
-    case PhoneNumAuthError.EMPTY: {
-      return Translations(
-        it: "Campo vuoto.",
-        en: "Empty field.",
-      );
-    }
-    case PhoneNumAuthError.INVALID: {
-      return Translations(
+    case PhoneNumberFieldError.INVALID: {
+      return const TranslationsConst(
           it: "Formato non appropriato.",
           en: "Bad Format."
       );
     }
-    default: return null;
+    default:
+      return translatorIntField(error);
   }
 }

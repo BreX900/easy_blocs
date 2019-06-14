@@ -81,3 +81,81 @@ class TranslationButton extends StatelessWidget {
     );
   }
 }
+
+
+// TODO: COMPLETARE
+class TranslationsInputDecoration extends InputDecoration {
+  final Translations translationsHintText;
+
+  const TranslationsInputDecoration({
+    Widget icon,
+    Translations labelText,
+    TextStyle labelStyle,
+    Translations helperText,
+    TextStyle helperStyle,
+    this.translationsHintText,
+    TextStyle hintStyle,
+    int hintMaxLines,
+    Translations errorText,
+    TextStyle errorStyle,
+    int errorMaxLines,
+    bool hasFloatingPlaceholder,
+    bool isDense,
+    EdgeInsetsGeometry contentPadding,
+    bool isCollapsed,
+    Widget prefixIcon,
+    Widget prefix,
+    Translations prefixText,
+    TextStyle prefixStyle,
+    Widget suffixIcon,
+    Widget suffix,
+    Translations suffixText,
+    TextStyle suffixStyle,
+    Translations counterText,
+    Widget counter,
+    TextStyle counterStyle,
+    bool filled,
+    Color fillColor,
+    InputBorder errorBorder,
+    InputBorder focusedBorder,
+    InputBorder focusedErrorBorder,
+    InputBorder disabledBorder,
+    InputBorder enabledBorder,
+    InputBorder border,
+    bool enabled: true,
+    String semanticCounterText,
+    bool alignLabelWithHint,
+  }) : super(
+    icon: icon,
+    labelStyle: labelStyle,
+    helperStyle: helperStyle,
+    hintStyle: hintStyle,
+    hintMaxLines: hintMaxLines,
+    errorStyle: errorStyle,
+    errorMaxLines: errorMaxLines,
+    hasFloatingPlaceholder: hasFloatingPlaceholder,
+    isDense: isDense,
+    contentPadding: contentPadding,
+    prefixIcon: prefixIcon,
+    prefix: prefix,
+    prefixStyle: prefixStyle,
+    suffixIcon: suffixIcon,
+    suffixStyle: suffixStyle,
+    counter: counter,
+    counterStyle: counterStyle,
+    filled: filled,
+    fillColor: fillColor,
+    errorBorder: errorBorder,
+    focusedBorder: focusedBorder,
+    focusedErrorBorder: focusedErrorBorder,
+    disabledBorder: disabledBorder,
+    enabledBorder: enabledBorder,
+    border: border,
+    enabled: enabled,
+    semanticCounterText: semanticCounterText,
+    alignLabelWithHint: alignLabelWithHint,
+  );
+
+  @override
+  String get hintText => translationsHintText.text;
+}

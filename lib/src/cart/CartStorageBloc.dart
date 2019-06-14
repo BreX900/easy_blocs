@@ -47,7 +47,8 @@ class CartStorage extends Cart {
         jsonDecode(await file.readAsString()),
       ).products, fileName: fileName);
     } catch (e) {
-      if (!(e is FormatException))debugPrint(e);
+      if (!(e is FormatException))
+        debugPrint(e);
       return CartStorage([], fileName: fileName);
     }
   }

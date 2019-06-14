@@ -1,17 +1,18 @@
+import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
-import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter/services.dart';
 
 
-class PasswordChecker extends Checker<String, PasswordAuthError> {
+class PasswordChecker extends StringChecker {
   PasswordChecker({@required Hand hand}) : super(hand: hand);
 
   @override
-  PasswordAuthError validate(String str) {
-    if (str == null || str.isEmpty)
-      return PasswordAuthError.EMPTY;
-    else if (str.length < 8) // TODO: Vedi [PasswordAuthError.INVALID] per completare questo controllo
+  Object validate(String str) {
+    final error = super.validate(str);
+    if (error != null)
+      return error;
+    if (str.length < 8) // TODO: Vedi [PasswordAuthError.INVALID] per completare questo controllo
       return PasswordAuthError.INVALID;
     return null;
   }
@@ -20,15 +21,10 @@ class PasswordChecker extends Checker<String, PasswordAuthError> {
   final List<TextInputFormatter> inputFormatters = [
     BlacklistingTextInputFormatter(RegExp('[ ]'))
   ];
-
-  @override
-  String get value => data.text;
 }
 
 
 enum PasswordAuthError {/// Delete error in stream [null]
-  /// Empty value
-  EMPTY,
   /// Must have at least 8 characters, a number, a symbol, a lowercase letter and a capital letter
   INVALID,
   /// Wrong password

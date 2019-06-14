@@ -5,60 +5,76 @@ import 'package:flutter/services.dart';
 
 
 // TODO: Separare il checker dal controller. Il controller dovrà ereditare da CacheSubject e mixare con il checker
-abstract class Checker<V, E> extends FingerNode implements CheckerRule<E> {
-  final CacheSubject<DataField> _controller;
+abstract class Checker<V, S> extends FingerNode implements CheckerRule<V, S> {
+  final CacheSubject<DataField<V>> _controller;
 
   /// [FocusHandlerRule] manages the next focus
-  Checker({@required Hand hand, DataField update: const DataField(),
-  }) : this._controller = CacheSubject.seeded(update), super(hand: hand);
+  Checker({@required Hand hand, DataField<V> update,
+  }) : this._controller = CacheSubject.seeded(update??DataField<V>() ), super(hand: hand);
 
-  Stream<DataField> get outData => _controller.stream;
+  Stream<DataField<V>> get outData => _controller.stream;
 
-  DataField get data => _controller.value;
-  String get text => data.text;
-  V get value;
+  DataField<V> get data => _controller.value;
+  V get value => data.value;
+  String get text => '${data.value}';
 
-  void add(DataField data) => _controller.add(data);
-  void addError(E error) => _controller.addError(error);
+  void add(DataField<V> data) => _controller.add(data);
 
-  Future<void> close() async {
-    focusNode.dispose();
+  void addError(Object error) => _controller.add(data.addError(error));
+
+  Future<void> dispose() async {
+    super.dispose();
     await _controller.close();
   }
 
-  /// Return null if pass check
-  E validate(String str);
-
   final int maxLength = null;
-  //final int minLength = null;
+
+  final inputFormatters = null;
+
+  Object validate(S val) => null;
+
+  obscureText(bool obscureText) => add(data.copyWith(obscureText: obscureText));
 }
 
 
-abstract class CheckerRule<E> implements FingerNode {
-  Stream<DataField> get outData;
+abstract class CheckerRule<V, S> implements FingerNode {
+  Stream<DataField<V>> get outData;
 
-  void add(DataField data);
+  Object validate(S val);
 
-  E validate(String value);
+  void onSaved(S val);
 
   List<TextInputFormatter> get inputFormatters;
 
   int get maxLength;
-  //int get minLength;
+
+  obscureText(bool obscureText);
 }
 
 
-class DataField {
-  final String text;
+class DataField<V> {
+  final Object error;
+  final V value;
   final bool obscureText;
 
-  const DataField({this.text, this.obscureText: false}) : assert(obscureText != null);
+  const DataField({
+    this.error, this.value, this.obscureText: false,
+  }) : assert(obscureText != null);
 
-  copyWith({String text, bool obscureText}) {
+  String get text => value == null ? null : value.toString();
+
+  DataField<V> copyWith({V value, bool obscureText}) {
+    return _copyWith(value: value, obscureText: obscureText);
+  }
+  DataField<V> addError(Object error) {
+    return _copyWith(error: error);
+  }
+
+  DataField<V> _copyWith({Object error, V value, bool obscureText}) {
     return DataField(
-      text: text??this.text,
+      error: error,
+      value: value??this.value,
       obscureText: obscureText??this.obscureText,
     );
   }
 }
-

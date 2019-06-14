@@ -1,53 +1,42 @@
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:easy_blocs/src/checker/checkers/NominativeChecker.dart';
-import 'package:easy_blocs/src/checker/widget/CheckerField.dart';
-import 'package:easy_blocs/src/utility.dart';
 import 'package:flutter/material.dart';
 
 
-class NominativeField extends CheckerField<String, NominativeAuthError> {
+class NominativeField extends StringField {
 
   NominativeField({Key key,
-    @required Checker<String, NominativeAuthError> checker,
-    Translator<NominativeAuthError> translator: translatorNominativeField,
-    InputDecoration decoration: const InputDecoration(),
+    @required CheckerRule<String, String> checker, @required Hand hand,
+    Translator translator: translatorNominativeField,
+    InputDecoration decoration: NOMINATIVE_DECORATION,
     bool defaultDecoration: true,
   }) : assert(checker != null), assert(decoration != null), super(key: key,
-    checker: checker, translator: translator,
-    decoration: mergeInputDecoration(decoration, nominativeDecoration, defaultDecoration,
-      hintText: nominativeHintText
-    ),
+    checker: checker, hand: hand, translator: translator,
+    decoration: decoration,
   );
 
 }
 
 
-const nominativeDecoration = const InputDecoration(
+const NOMINATIVE_DECORATION = const TranslationsInputDecoration(
   prefixIcon: const Icon(Icons.account_circle),
+  translationsHintText: const TranslationsConst(
+      it: "Nome e Cognome",
+      en: "Name and Surname"
+  ),
 );
 
 
-final nominativeHintText = Translations(
-    it: "Nome e Cognome",
-    en: "Name and Surname"
-);
-
-
-Translations translatorNominativeField(NominativeAuthError error) {
+Translations translatorNominativeField(Object error) {
   switch (error) {
-    case NominativeAuthError.EMPTY: {
-      return Translations(
-        it: "Campo vuoto.",
-        en: "Empty field.",
-      );
-    }
     case NominativeAuthError.INVALID: {
-      return Translations(
+      return const TranslationsConst(
           it: "Formato non appropriato.",
           en: "Bad Format."
       );
     }
-    default: return null;
+    default:
+      return translatorStringField(error);
   }
 }
