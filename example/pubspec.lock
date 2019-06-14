@@ -81,11 +81,9 @@ packages:
   easy_widget:
     dependency: transitive
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "4cab8118f7198dd25218da1185f34f68a166c0cf"
-      url: "https://github.com/BreX900/easy_widget"
-    source: git
+      path: "..\\..\\easy_packages"
+      relative: true
+    source: path
     version: "0.0.1+16"
   flutter:
     dependency: "direct main"
