@@ -1,5 +1,6 @@
-import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
+import 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
 import 'package:easy_blocs/src/rxdart_cache/CacheSubject.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter/services.dart';
 
@@ -7,9 +8,10 @@ import 'package:flutter/services.dart';
 // TODO: Separare il checker dal controller. Il controller dovrà ereditare da CacheSubject e mixare con il checker
 abstract class Checker<V, S> extends FingerNode implements CheckerRule<V, S> {
   final CacheSubject<DataField<V>> _controller;
+  final Hand hand;
 
   /// [FocusHandlerRule] manages the next focus
-  Checker({@required Hand hand, DataField<V> update,
+  Checker({@required this.hand, DataField<V> update,
   }) : this._controller = CacheSubject.seeded(update??DataField<V>() ), super(hand: hand);
 
   Stream<DataField<V>> get outData => _controller.stream;
@@ -34,6 +36,10 @@ abstract class Checker<V, S> extends FingerNode implements CheckerRule<V, S> {
   Object validate(S val) => null;
 
   obscureText(bool obscureText) => add(data.copyWith(obscureText: obscureText));
+
+  void nextFinger(BuildContext context) {
+    hand.nextFinger(context, this);
+  }
 }
 
 
@@ -49,6 +55,8 @@ abstract class CheckerRule<V, S> implements FingerNode {
   int get maxLength;
 
   obscureText(bool obscureText);
+
+  void nextFinger(BuildContext context);
 }
 
 

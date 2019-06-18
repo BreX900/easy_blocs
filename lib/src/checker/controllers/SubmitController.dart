@@ -4,12 +4,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 
-class SubmitController implements Finger {
-  final AsyncCallback onSubmit;
+class SubmitController<V> implements Finger {
+  final Submitter<V> _onSubmit;
+  final FormHandler _handler;
+  ValueChanged<V> solver = (_) {};
 
   SubmitController({
-    @required Submitter onSubmit, @required FormHandler handler, Hand hand,
-  }) : this.onSubmit = (() async => await handler.submit(onSubmit)) {
+    @required Submitter<V> onSubmit, @required FormHandler handler, Hand hand,
+  }) : this._onSubmit = onSubmit, this._handler = handler {
     handler.addSubmitController(this);
     hand?.addFinger(this);
   }
@@ -30,6 +32,14 @@ class SubmitController implements Finger {
 
   addEvent(SubmitEvent event) {
     _submitController.add(data.copyWith(error: event));
+  }
+
+  Future<void> onSubmit() async {
+    await _handler.submit(() async {
+      final res = await _onSubmit();
+      solver(res);
+      return res;
+    });
   }
 
   @override

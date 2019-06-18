@@ -24,7 +24,7 @@ class CounterProductCart extends StatelessWidget {
       stream: stream,
       builder: (context, snapshot) {
         return builder(context, snapshot.data == null ? null :
-          snapshot.data.getProduct(id)?.numItemsOrdered??0);
+          snapshot.data.getProduct(id)?.countProducts??0);
       }
     );
   }

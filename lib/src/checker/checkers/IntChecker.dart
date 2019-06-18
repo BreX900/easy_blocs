@@ -1,4 +1,4 @@
-import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
+import 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter/services.dart';

@@ -120,16 +120,37 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
     return super.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  StreamSubscription<T> _streamSubscription;
+  StreamSubscription<T> _streamSubscription, _listenSubscription;
   void catchStream(Stream<T> stream) {
     assert(stream != null);
     _streamSubscription?.cancel();
     _streamSubscription = utility.catchStream(this, stream);
   }
+  void catchListen(void Function(T event) onData, {
+    Function onError, void Function() onDone, bool cancelOnError, initialData: false,
+  }) {
+    _listenSubscription?.cancel();
+    _listenSubscription = listen(onData, 
+      onError: onError, onDone: onDone, cancelOnError: cancelOnError, initialData: initialData,
+    );
+  }
+
+  AsObservableFuture<T> get first {
+    final resultCompleter = Completer<T>();
+    final subCompleter = Completer<StreamSubscription>();
+    subCompleter.complete(listen((data) {
+      if (data != null) {
+        resultCompleter.complete(data);
+      }
+    }));
+    subCompleter.future.then((sub) => resultCompleter.future.then((_) => sub.cancel()));
+    return AsObservableFuture(resultCompleter.future);
+  }
   
   @override
   Future<dynamic> close() {
     _streamSubscription?.cancel();
+    _listenSubscription?.cancel();
     return super.close();
   }
 }

@@ -1,4 +1,4 @@
-import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
+import 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
 import 'package:easy_blocs/src/checker/checkers/IntChecker.dart';
 import 'package:meta/meta.dart';
 

@@ -1,4 +1,3 @@
-import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:easy_blocs/src/checker/checkers/StringChecker.dart';
 import 'package:easy_blocs/src/checker/widget/CheckerField.dart';
@@ -9,12 +8,12 @@ import 'package:flutter/material.dart';
 
 class StringField extends CheckerField<String> {
   StringField({Key key,
-    @required CheckerRule<String, String> checker, @required Hand hand,
+    @required CheckerRule<String, String> checker,
     Translator translator: translatorStringField,
     InputDecoration decoration: const InputDecoration(),
     bool defaultDecoration: true,
   }) : assert(checker != null), assert(decoration != null), super(key: key,
-    checker: checker, hand: hand, translator: translator,
+    checker: checker, translator: translator,
     decoration: decoration,
   );
 

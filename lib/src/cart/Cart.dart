@@ -16,27 +16,45 @@ class Cart {
   }
 
   bool increment(String id) {
-    _update(getProduct(id)??ProductCart(id: id), 1);
+    final product = getProduct(id);
+    return product == null
+        ? onInsert(ProductCart(id: id, countProducts: 1))
+        : onIncrement(product.increment());
+  }
+
+  bool onInsert(ProductCart product) {
+    _update(product);
+    return true;
+  }
+
+  bool onIncrement(ProductCart product) {
+    _update(product);
     return true;
   }
 
   bool decrease(String id) {
-    final product = getProduct(id);
+    var product = getProduct(id);
     if (product == null) return false;
-    if (product.numItemsOrdered <= 1) {
-      products.remove(product);
-    } else {
-      _update(product, -1);
-    }
+    product = product.decrease();
+    return product.countProducts <= 0
+        ? onRemove(product)
+        : onDecrease(product);
+  }
+
+  bool onDecrease(ProductCart product) {
+    _update(product);
     return true;
   }
 
-  _update(ProductCart product, int value) {
+  bool onRemove(ProductCart product) {
+    products.remove(product);
+    return true;
+  }
+
+  _update(ProductCart product) {
     assert(product != null);
     products.remove(product);
-    if (product.numItemsOrdered+value > 0)
-      products.add(ProductCart(
-        numItemsOrdered: product.numItemsOrdered+value, id: product.id));
+    products.add(product);
   }
 
   Iterable<String> get idProducts => products.map((prod) => prod.id);
@@ -49,11 +67,19 @@ class Cart {
 class ProductCart {
   final String id;
 
-  final int numItemsOrdered;
+  final int countProducts;
 
   ProductCart({
-    @required this.id, this.numItemsOrdered: 0,
-  }): assert(numItemsOrdered != null), assert(id != null);
+    @required this.id, this.countProducts: 0,
+  }): assert(countProducts != null), assert(id != null);
+
+  ProductCart decrease() {
+    return copyWith(countProducts: countProducts-1);
+  }
+
+  ProductCart increment() {
+    return copyWith(countProducts: countProducts+1);
+  }
 
   @override
   bool operator ==(o) => o is ProductCart && o.id == id;
@@ -61,10 +87,15 @@ class ProductCart {
   @override
   int get hashCode => hash(id);
 
-  String toString() => "ProductCart(id: $id, numItemsOrdered: $numItemsOrdered)";
+  String toString() => "ProductCart(id: $id, numItemsOrdered: $countProducts)";
+
+  ProductCart copyWith({int countProducts}) {
+    return ProductCart(
+      id: id,
+      countProducts: countProducts,
+    );
+  }
 
   static ProductCart fromJson(Map json) => _$ProductCartFromJson(json);
   Map<String, dynamic> toJson() => _$ProductCartToJson(this);
 }
-
-

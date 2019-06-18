@@ -1,4 +1,3 @@
-import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
 import 'package:easy_blocs/src/checker/checkers/AddressChecker.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:easy_blocs/src/checker/widget/StringField.dart';
@@ -11,18 +10,22 @@ import 'package:flutter/material.dart';
 class AddressField extends StringField {
 
   AddressField({Key key,
-    @required CheckerRule<String, String> checker, @required Hand hand,
+    @required CheckerRule<String, String> checker,
     Translator translator: translatorAddressField,
     InputDecoration decoration: ADDRESS_DECORATION,
   }) : assert(checker != null), super(key: key,
-    checker: checker, hand: hand, translator: translator,
+    checker: checker, translator: translator,
     decoration: decoration,
   );
 
 }
 
 const ADDRESS_DECORATION = const TranslationsInputDecoration(
-
+  prefixIcon: const Icon(Icons.home),
+  translationsHintText: const TranslationsConst(
+    it: "Indirzzo",
+    en: "Address",
+  ),
 );
 
 

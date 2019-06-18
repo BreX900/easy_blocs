@@ -2,7 +2,7 @@ import 'package:easy_blocs/src/checker/controllers/SubmitController.dart';
 import 'package:flutter/widgets.dart';
 
 
-typedef Future<bool> Submitter();
+typedef Future<V> Submitter<V>();
 typedef Future<bool> Validator();
 
 
@@ -21,21 +21,20 @@ class FormHandler {
     _submitControllers.forEach((controller) => controller.dispose());
   }
 
-  Future<void> submit(Submitter onSubmit) async {
+  Future<void> submit<V>(Submitter<V> submitter) async {
     if (_submitControllers.any((controller) => controller.data.event != SubmitEvent.WAITING))
       return;
     await _addEvent(SubmitEvent.WORKING);
     if (await preValidate()) {
       formKey.currentState.save();
       if (await postValidate()) {
-        final res = await onSubmit();
-        if (res) {
-          await _addEvent(SubmitEvent.COMPLETE);
-          return;
-        }
+        final res = await submitter();
+        _addEvent(res == null ? SubmitEvent.WAITING : SubmitEvent.COMPLETE);
+        return;
       }
     }
     await _addEvent(SubmitEvent.WAITING);
+    return;
   }
 
   Future<void> _addEvent(SubmitEvent event) async {

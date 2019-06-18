@@ -7,12 +7,12 @@ import 'package:flutter/material.dart';
 class NominativeField extends StringField {
 
   NominativeField({Key key,
-    @required CheckerRule<String, String> checker, @required Hand hand,
+    @required CheckerRule<String, String> checker,
     Translator translator: translatorNominativeField,
     InputDecoration decoration: NOMINATIVE_DECORATION,
     bool defaultDecoration: true,
   }) : assert(checker != null), assert(decoration != null), super(key: key,
-    checker: checker, hand: hand, translator: translator,
+    checker: checker, translator: translator,
     decoration: decoration,
   );
 

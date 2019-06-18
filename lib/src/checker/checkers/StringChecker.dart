@@ -1,5 +1,5 @@
 import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
+import 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:meta/meta.dart';
 

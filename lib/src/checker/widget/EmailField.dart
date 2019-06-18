@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 class EmailField extends StringField {
 
   EmailField({Key key,
-    @required CheckerRule<String, String> checker, @required Hand hand,
+    @required CheckerRule<String, String> checker,
     Translator translator: translatorEmailField,
     InputDecoration decoration: const InputDecoration(),
   }) : assert(checker != null), super(key: key,
-    checker: checker, hand: hand, translator: translator,
+    checker: checker, translator: translator,
     decoration: decoration,
   );
 

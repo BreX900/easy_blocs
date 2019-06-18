@@ -7,7 +7,7 @@ export 'src/cart/CartStorageBloc.dart';
 export 'src/cart/CounterProductCart.dart';
 
 
-export 'src/checker/bloc/FocusHandler.dart';
+export 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
 export 'src/checker/bloc/SubmitBloc.dart';
 
 export 'src/checker/checkers/AddressChecker.dart';

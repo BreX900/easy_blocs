@@ -1,4 +1,3 @@
-import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:easy_blocs/src/checker/checkers/PhoneNumberChecker.dart';
 import 'package:easy_blocs/src/checker/widget/IntField.dart';
@@ -11,12 +10,12 @@ import 'package:flutter/material.dart';
 class PhoneNumberField extends IntField {
 
   PhoneNumberField({Key key,
-    @required CheckerRule<int, String> checker, @required Hand hand,
+    @required CheckerRule<int, String> checker,
     Translator translator: translatorPhoneNumberField,
     InputDecoration decoration: PHONE_NUMBER_DECORATION,
     bool defaultDecoration,
   }) : assert(checker != null), assert(decoration != null), super(key: key,
-    checker: checker, hand: hand, translator: translator,
+    checker: checker, translator: translator,
     decoration: decoration,
   );
 

@@ -157,5 +157,5 @@ class TranslationsInputDecoration extends InputDecoration {
   );
 
   @override
-  String get hintText => translationsHintText.text;
+  String get hintText => translationsHintText?.text;
 }

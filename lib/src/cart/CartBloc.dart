@@ -8,8 +8,6 @@ import 'package:meta/meta.dart';
 
 
 class EasyCartBloc implements Bloc {
-  final autoUpdate;
-
   @protected @override @mustCallSuper
   void dispose() {
     _cartControl.close();
@@ -34,18 +32,15 @@ class EasyCartBloc implements Bloc {
   }
 
   bool _save(bool save) {
-    if (autoUpdate && save && _isEnable) {
+    if (save) {
       _cartControl.add(_cart);
     }
     return save;
   }
 
-  bool _isEnable;
-
-  void inIsEnable(bool isEnable) async {
-    _isEnable = isEnable;
-    _cartControl.add(_isEnable ? _cart : null);
+  void inEnabling(bool isEnable) async {
+    _cartControl.add(isEnable ? _cart : null);
   }
 
-  EasyCartBloc.instance({this.autoUpdate: true, bool isEnable: true,}) : this._isEnable = isEnable;
+  EasyCartBloc.instance();
 }

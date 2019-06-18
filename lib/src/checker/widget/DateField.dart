@@ -1,12 +1,11 @@
 import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/checker/bloc/FocusHandler.dart';
+import 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
 import 'package:easy_blocs/src/rxdart_cache/CacheStreamBuilder.dart';
 import 'package:easy_blocs/src/translator/Translator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
-import 'package:synchronized/synchronized.dart';
 
 
 class DateTimeField extends StatelessWidget {

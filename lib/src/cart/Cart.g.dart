@@ -18,12 +18,12 @@ Map<String, dynamic> _$CartToJson(Cart instance) => <String, dynamic>{
 
 ProductCart _$ProductCartFromJson(Map json) {
   return ProductCart(
-      numItemsOrdered: json['numItemsOrdered'] as int,
+      countProducts: json['countProducts'] as int,
       id: json['id'] as String);
 }
 
 Map<String, dynamic> _$ProductCartToJson(ProductCart instance) =>
     <String, dynamic>{
-      'numItemsOrdered': instance.numItemsOrdered,
+      'countProducts': instance.countProducts,
       'id': instance.id
     };
