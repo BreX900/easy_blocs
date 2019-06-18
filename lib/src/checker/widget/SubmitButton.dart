@@ -17,7 +17,6 @@ class SubmitButton extends StatelessWidget {
     @required this.builder,
   }) : assert(controller != null), assert(builder != null), super(key: key);
 
-
   SubmitButton.raised({
     @required SubmitController controller,
     Widget child,
@@ -57,4 +56,27 @@ class SubmitButton extends StatelessWidget {
       },
     );
   }
+
+/*SubmitButton.icon({
+    @required SubmitController controller,
+    WidgetBuilder onError: ((context) {
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text("errore"),
+      ));
+    }),
+    Widget icon,
+  }) : this(
+    controller: controller,
+    builder: (context, onPressed) {
+      return IconButton(
+        onPressed: () async {
+          final res = await instagram.sign(context);
+          controller.solver(res);
+          if (res == null)
+            onError(context, lsdsa);
+        },
+        icon: icon,
+      );
+    },
+  );*/
 }

@@ -10,8 +10,9 @@ class StringChecker extends Checker<String, String> {
 
   StringChecker({
     @required Hand hand,
+    DataField<String> data,
     this.maxWords, this.minWords,
-  }) : super(hand: hand);
+  }) : super(hand: hand, update: data);
 
   @override
   Object validate(String str) {

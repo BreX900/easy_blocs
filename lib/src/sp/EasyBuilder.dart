@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:easy_blocs/easy_blocs.dart';
+import 'package:easy_blocs/src/sp/Sp.dart';
 import 'package:easy_blocs/src/sp/SpBloc.dart';
 import 'package:flutter/widgets.dart';
 

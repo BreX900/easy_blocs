@@ -7,7 +7,6 @@ export 'src/cart/CartStorageBloc.dart';
 export 'src/cart/CounterProductCart.dart';
 
 
-export 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
 export 'src/checker/bloc/SubmitBloc.dart';
 
 export 'src/checker/checkers/AddressChecker.dart';
@@ -20,7 +19,10 @@ export 'src/checker/checkers/PasswordChecker.dart';
 export 'src/checker/checkers/PhoneNumberChecker.dart';
 export 'src/checker/checkers/StringChecker.dart';
 
+export 'src/checker/controllers/FocusHandler.dart';
 export 'src/checker/controllers/FormHandler.dart';
+export 'src/checker/controllers/MixinFormHandler.dart';
+export 'src/checker/controllers/MixinHand.dart';
 export 'src/checker/controllers/SubmitController.dart';
 
 export 'src/checker/widget/AddressField.dart';
@@ -44,7 +46,9 @@ export 'src/rxdart_cache/CacheStreamBuilder.dart';
 export 'src/rxdart_cache/CacheSubject.dart';
 
 export 'src/sp/SpBloc.dart';
+export 'src/sp/Sp.dart';
 export 'src/sp/EasyBuilder.dart';
+export 'src/sp/widgets.dart';
 
 export 'src/storage/CacheManagers.dart';
 export 'src/storage/utility.dart';
