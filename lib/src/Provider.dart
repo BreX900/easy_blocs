@@ -1,11 +1,10 @@
 import 'package:dash/dash.dart';
-import 'package:easy_blocs/src/sp/SpBloc.dart';
-import 'package:easy_blocs/src/translator/Translator.dart';
+import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
+
 
 part 'Provider.g.dart';
 
-@BlocProvider.register(TranslatorBloc)
 
-@BlocProvider.register(SpBloc)
+@BlocProvider.register(RepositoryBloc)
 
 abstract class Provider {}

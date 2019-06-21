@@ -91,6 +91,8 @@ class TextThemeSp extends TextTheme {
       Sp sp, bool adv, TextStyle style, double fontSize, FontWeight fontWeight, double letterSpacing, {
         Color color, TextDecoration decoration,
   }) {
+    fontSize = fontSize*2.75;
+    letterSpacing = letterSpacing*1.25;
     if (style == null)
       return TextStyle(
         fontSize: sp.get(fontSize),

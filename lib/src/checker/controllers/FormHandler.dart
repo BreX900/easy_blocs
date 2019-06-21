@@ -28,9 +28,7 @@ class FormHandler {
     if (await preValidate()) {
       formKey.currentState.save();
       if (await postValidate()) {
-        final res = await submitter();
-        _addEvent(res == null ? SubmitEvent.WAITING : SubmitEvent.COMPLETE);
-        return;
+        await submitter();
       }
     }
     await _addEvent(SubmitEvent.WAITING);

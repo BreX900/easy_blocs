@@ -1,4 +1,5 @@
 import 'package:easy_blocs/easy_blocs.dart';
+import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_widget/easy_widget.dart';
@@ -6,7 +7,7 @@ import 'package:flutter/painting.dart';
 
 
 class TranslationDrawer extends StatelessWidget {
-  final translationBloc = TranslatorBloc.of();
+  final translationBloc = RepositoryBloc.of();
   final List<Locale> locales;
   final String path;
   final double size;
@@ -52,7 +53,7 @@ class TranslationDrawer extends StatelessWidget {
 
 
 class TranslationButton extends StatelessWidget {
-  final translatorBloc = TranslatorBloc.of();
+  final translatorBloc = RepositoryBloc.of();
   final String path;
   final double size;
 

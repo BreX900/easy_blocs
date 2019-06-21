@@ -19,7 +19,7 @@ class CacheObservable<T> extends Observable<T> {
 
   T get value => latestValue;
 
-  bool get hasValue => latestIsValue;
+  bool get hasValue => latestIsValue && latestValue != null;
 
   Object get error => latestError;
   StackTrace get stackTrace => latestStackTrace;

@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:collection';
 
-import 'package:easy_blocs/src/rxdart_cache/utility.dart' as utility;
 import 'package:easy_blocs/src/rxdart_cache/CacheObservable.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -41,13 +41,13 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
   Object latestError;
   StackTrace latestStackTrace;
 
-  bool latestIsValue = false, latestIsError = false;
+  bool latestIsValue, latestIsError = false;
 
   CacheSubject.internal(
       StreamController<T> controller,
       Observable<T> observable,
       this.latestValue,
-      ) : super(controller, observable);
+      ) : latestIsValue = latestValue != null, super(controller, observable);
 
   factory CacheSubject({void onListen(), void onCancel(), bool sync = false}) {
 
@@ -99,7 +99,7 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
   CacheObservable<T> get stream => this;
 
   @override
-  bool get hasValue => latestIsValue;
+  bool get hasValue => latestIsValue && latestValue != null;
 
   /// Get the latest value emitted by the Subject
   @override
@@ -120,25 +120,36 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
     return super.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  StreamSubscription<T> _streamSubscription, _listenSubscription;
-  void catchStream(Stream<T> stream) {
-    assert(stream != null);
-    _streamSubscription?.cancel();
-    _streamSubscription = utility.catchStream(this, stream);
-  }
-  void catchListen(void Function(T event) onData, {
-    Function onError, void Function() onDone, bool cancelOnError, initialData: false,
+
+  HashMap<String, StreamSubscription> _streamSubscriptions = HashMap();
+  void catchStreamListen<D>(String tag, Stream<D> stream, void Function(D event) onData, {
+    Function onError, void Function() onDone, bool cancelOnError,
   }) {
-    _listenSubscription?.cancel();
-    _listenSubscription = listen(onData, 
-      onError: onError, onDone: onDone, cancelOnError: cancelOnError, initialData: initialData,
+    assert(tag != null);
+    assert(stream != null && onData != null);
+    _streamSubscriptions[tag]?.cancel();
+    _streamSubscriptions[tag] = stream.listen(
+      onData, onError: onError, onDone: onDone,
+      cancelOnError: cancelOnError,
     );
   }
+
+  void catchStream(String tag, Stream<T> stream) {
+    catchStreamListen<T>(tag, stream, add, onError: addError, );
+  }
+
+  void catchListen(String tag, void Function(T event) onData, {
+    Function onError, void Function() onDone, bool cancelOnError, initialData: false,
+  }) {
+    catchStreamListen<T>(tag, this, onData);
+  }
+
 
   AsObservableFuture<T> get first {
     final resultCompleter = Completer<T>();
     final subCompleter = Completer<StreamSubscription>();
     subCompleter.complete(listen((data) {
+      print(data);
       if (data != null) {
         resultCompleter.complete(data);
       }
@@ -149,8 +160,7 @@ class CacheSubject<T> extends Subject<T> implements CacheObservable<T> {
   
   @override
   Future<dynamic> close() {
-    _streamSubscription?.cancel();
-    _listenSubscription?.cancel();
+    _streamSubscriptions.values.forEach((sub) => sub.cancel());
     return super.close();
   }
 }

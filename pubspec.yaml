@@ -16,6 +16,7 @@ dependencies:
   dash: any
 
   shared_preferences: any
+  flutter_secure_storage: any
   flutter_cache_manager: any
   path_provider: any
 

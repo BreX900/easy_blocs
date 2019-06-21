@@ -12,12 +12,15 @@ class Sp {
     final mediaQuery = MediaQuery.of(context);
 
     return Sp(
-      width: width, height: height, allowFontScaling: allowFontScaling,
-      mediaQueryData: mediaQuery, pixelRatio: mediaQuery.devicePixelRatio,
+      width: width, height: height,
+      allowFontScaling: allowFontScaling,
+      mediaQueryData: mediaQuery,
+      pixelRatio: mediaQuery.devicePixelRatio,
       screenSize: mediaQuery.size,
       statusBarHeight: mediaQuery.padding.top, bottomBarHeight: mediaQuery.padding.bottom,
       textScaleFactor: mediaQuery.textScaleFactor,
-      scaleWidth: mediaQuery.size.width / width, scaleHeight: mediaQuery.size.height / height,
+      scaleWidth: mediaQuery.size.width / width,
+      scaleHeight: mediaQuery.size.height / height,
     );
   }
 
@@ -25,7 +28,7 @@ class Sp {
     return MediaQuery.of(context).size != screenSize;
   }
 
-  Sp({
+  const Sp({
     this.width = 1080,
     this.height = 1920,
     this.allowFontScaling = false,
@@ -87,4 +90,9 @@ class Sp {
   ///@param allowFontScaling false。
   ///@param allowFontScaling Specifies whether fonts should scale to respect Text Size accessibility settings. The default is false.
   get(double fontSize) => allowFontScaling ? getWidth(fontSize) : getWidth(fontSize) / textScaleFactor;
+
+  @override
+  String toString() {
+    return 'Sp(width: $width, height: $height, screenWidthDp: $screenWidthDp, screenHeightDp: $screenHeightDp, test: 18-${get(18)})';
+  }
 }

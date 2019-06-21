@@ -9,14 +9,10 @@ part of 'Provider.dart';
 class $Provider extends Provider {
   static T of<T extends Bloc>() {
     switch (T) {
-      case TranslatorBloc:
+      case RepositoryBloc:
         {
           return BlocCache.getBlocInstance(
-              "TranslatorBloc", () => TranslatorBloc.instance());
-        }
-      case SpBloc:
-        {
-          return BlocCache.getBlocInstance("SpBloc", () => SpBloc.instance());
+              "RepositoryBloc", () => RepositoryBloc.instance());
         }
     }
     return null;
@@ -24,14 +20,9 @@ class $Provider extends Provider {
 
   static void dispose<T extends Bloc>() {
     switch (T) {
-      case TranslatorBloc:
+      case RepositoryBloc:
         {
-          BlocCache.dispose("TranslatorBloc");
-          break;
-        }
-      case SpBloc:
-        {
-          BlocCache.dispose("SpBloc");
+          BlocCache.dispose("RepositoryBloc");
           break;
         }
     }

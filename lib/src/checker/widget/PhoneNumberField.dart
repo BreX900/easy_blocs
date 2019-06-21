@@ -2,7 +2,7 @@ import 'package:easy_blocs/src/checker/checkers/Checker.dart';
 import 'package:easy_blocs/src/checker/checkers/PhoneNumberChecker.dart';
 import 'package:easy_blocs/src/checker/widget/IntField.dart';
 import 'package:easy_blocs/src/translator/TranslationsModel.dart';
-import 'package:easy_blocs/src/translator/Translator.dart';
+import 'package:easy_blocs/src/translator/TranslatorController.dart';
 import 'package:easy_blocs/src/translator/Widgets.dart';
 import 'package:flutter/material.dart';
 

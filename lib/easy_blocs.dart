@@ -3,7 +3,7 @@ library easy_blocs;
 
 export 'src/cart/Cart.dart';
 export 'src/cart/CartBloc.dart';
-export 'src/cart/CartStorageBloc.dart';
+export 'src/cart/CartStorage.dart';
 export 'src/cart/CounterProductCart.dart';
 
 
@@ -41,20 +41,27 @@ export 'src/checker/widget/SubmitButton.dart';
 
 export 'src/connector/PageConnector.dart';
 
+export 'src/repository/RepositoryBloc.dart';
+export 'src/repository/RepositoryBuilder.dart';
+
 export 'src/rxdart_cache/CacheObservable.dart';
 export 'src/rxdart_cache/CacheStreamBuilder.dart';
 export 'src/rxdart_cache/CacheSubject.dart';
 
-export 'src/sp/SpBloc.dart';
+export 'src/sp/SpController.dart';
 export 'src/sp/Sp.dart';
-export 'src/sp/EasyBuilder.dart';
 export 'src/sp/widgets.dart';
 
-export 'src/storage/CacheManagers.dart';
-export 'src/storage/utility.dart';
+export 'src/storages/CacheManagers.dart';
+export 'src/storages/InternalStorage.dart';
+export 'src/storages/PreferencesStorage.dart';
+export 'src/storages/SecureStorage.dart';
+export 'src/storages/Storage.dart';
+export 'src/storages/utility.dart';
+export 'src/storages/VersionHandler.dart';
 
 export 'src/translator/TranslationsModel.dart';
-export 'src/translator/Translator.dart';
+export 'src/translator/TranslatorController.dart';
 export 'src/translator/Widgets.dart';
 
 export 'src/json.dart';
