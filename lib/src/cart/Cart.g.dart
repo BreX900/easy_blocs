@@ -7,9 +7,10 @@ part of 'Cart.dart';
 // **************************************************************************
 
 Cart _$CartFromJson(Map json) {
-  return Cart((json['products'] as List)
-      ?.map((e) => e == null ? null : ProductCart.fromJson(e as Map))
-      ?.toList());
+  return Cart(
+      products: (json['products'] as List)
+          ?.map((e) => e == null ? null : ProductCart.fromJson(e as Map))
+          ?.toList());
 }
 
 Map<String, dynamic> _$CartToJson(Cart instance) => <String, dynamic>{

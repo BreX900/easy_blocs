@@ -7,7 +7,13 @@ import 'package:flutter/material.dart';
 class PasswordField extends StringField {
   PasswordField({
     @required CheckerRule<String, String> checker,
-    InputDecoration decoration: const InputDecoration(),
+    InputDecoration decoration: const TranslationsInputDecoration(
+      prefixIcon: const Icon(Icons.lock),
+      translationsHintText: const TranslationsConst(
+        it: "Password",
+        en: "Password",
+      ),
+    ),
   }) : super(
       checker: checker, translator: translatorPasswordField,
     decoration: decoration.copyWith(
@@ -24,6 +30,15 @@ class PasswordField extends StringField {
     )
   );
 }
+
+
+const PASSWORD_REPEAT_DECORATION = const TranslationsInputDecoration(
+  prefixIcon: const Icon(Icons.lock),
+  translationsHintText: const TranslationsConst(
+    it: "Ripeti la Password",
+    en: "Repeat Password",
+  ),
+);
 
 
 Translations translatorPasswordField(Object error) {

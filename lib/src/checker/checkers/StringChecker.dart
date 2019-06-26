@@ -26,7 +26,6 @@ class StringChecker extends Checker<String, String> {
 
   @override
   void onSaved(String value) {
-    print(value);
     add(data.copyWith(value: value));
   }
 }

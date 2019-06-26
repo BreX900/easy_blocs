@@ -1,9 +1,8 @@
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
-import 'package:easy_blocs/src/rxdart_cache/CacheObservable.dart';
-import 'package:easy_blocs/src/rxdart_cache/CacheSubject.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:rxdart/rxdart.dart';
 
 
 typedef Translations Translator(Object value);
@@ -12,7 +11,7 @@ typedef Translations Translator(Object value);
 const String _defaultTranslation = 'en';
 
 String translator(Translations translations) {
-  return translations[RepositoryBloc.of().outLocale.value.languageCode]??
+  return translations[RepositoryBloc.of().translatorController._locale.languageCode]??
       translations[_defaultTranslation]??
       translations.values.first;
 }
@@ -27,7 +26,10 @@ class TranslatorController {
   static const _KEY = "UserTranslation";
   LoadingLanguage _loading = LoadingLanguage.FAILED_OR_NOT_START;
 
-  TranslatorController() {
+  Locale get _locale => _localeControl.value;
+  set _locale(Locale locale) => _localeControl.add(locale);
+
+  TranslatorController({Locale locale: const Locale('en')}) : this._localeControl = BehaviorSubject.seeded(locale) {
     _getStore();
   }
 
@@ -35,8 +37,8 @@ class TranslatorController {
     _localeControl.close();
   }
 
-  final CacheSubject<Locale> _localeControl = CacheSubject();
-  CacheObservable<Locale> get outLocale => _localeControl.stream;
+  final BehaviorSubject<Locale> _localeControl;
+  Observable<Locale> get outLocale => _localeControl.stream;
 
   Future<void> inContext(BuildContext context) async {
     if (_loading == LoadingLanguage.FAILED_OR_NOT_START)
@@ -46,9 +48,9 @@ class TranslatorController {
   Future<void> inLocale(Locale lc) async {
     assert(lc != null);
 
-    if (lc != _localeControl.value) {
-      _localeControl.add(lc);
-      _updateStore(lc);
+    if (lc != _locale) {
+      _locale = lc;
+      await _updateStore();
     }
   }
 
@@ -60,15 +62,15 @@ class TranslatorController {
     }
   }
 
-  Future<void> _updateStore(Locale lc) async {
-    await (await SharedPreferences.getInstance()).setString(_KEY, lc.languageCode);
+  Future<void> _updateStore() async {
+    await (await SharedPreferences.getInstance()).setString(_KEY, _locale.languageCode);
   }
 }
 
 
 mixin MixinTranslatorController {
   TranslatorController get translatorController;
-  CacheObservable<Locale> get outLocale => translatorController.outLocale;
+  Observable<Locale> get outLocale => translatorController.outLocale;
 
   Future<void> inContext(BuildContext context) {
     return translatorController.inContext(context);

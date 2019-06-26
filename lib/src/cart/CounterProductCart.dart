@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:easy_blocs/src/cart/Cart.dart';
-import 'package:easy_blocs/src/rxdart_cache/CacheStreamBuilder.dart';
+import 'package:easy_blocs/src/rxdart_extension/CacheStreamBuilder.dart';
 import 'package:flutter/widgets.dart';
 
 
 typedef Widget ValueChangedBuilder<V>(BuildContext context, V value);
 
-
+/// Inutile lascia perdere
 class CounterProductCart extends StatelessWidget {
   final String id;
   final Stream<Cart> stream;

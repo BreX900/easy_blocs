@@ -1,5 +1,5 @@
 import 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
-import 'package:easy_blocs/src/rxdart_cache/CacheSubject.dart';
+import 'package:easy_blocs/src/rxdart_extension/CacheSubject.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +31,8 @@ abstract class Checker<V, S> extends FingerNode implements CheckerRule<V, S> {
 
   final int maxLength = null;
 
+  final TextInputType keyboardType = null;
+
   final inputFormatters = null;
 
   Object validate(S val) => null;
@@ -53,6 +55,8 @@ abstract class CheckerRule<V, S> implements FingerNode {
   List<TextInputFormatter> get inputFormatters;
 
   int get maxLength;
+
+  TextInputType get keyboardType;
 
   obscureText(bool obscureText);
 

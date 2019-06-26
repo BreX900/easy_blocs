@@ -3,26 +3,33 @@ import 'dart:convert';
 import 'package:easy_blocs/src/json.dart';
 import 'package:easy_blocs/src/storages/VersionHandler.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
-abstract class StorageRule with MixinVersionHandler {
-  final VersionHandler versionHandler;
+abstract class Storage with MixinVersionManager {
+  final VersionManager versionManager;
 
-  StorageRule({
-    @required String key, @required String version,
-    SharedPreferences sharedPreferences,
-  }) : assert(key != null), assert(version != null),
-        this.versionHandler = VersionHandler.generateKey(key, version,
-          sharedPreferences: sharedPreferences,
-        );
+  Storage({
+    @required this.versionManager,
+  }) : assert(versionManager != null);
 
-  Future<String> getString({String defaultValue});
-
-  @mustCallSuper
-  Future<void> setString({@required String value}) async {
-    await updateVersion();
+  /// Not ovveride this method
+  @protected
+  Future<String> getString({String defaultValue}) async {
+    return versionManager.isCorrectVersion
+        ? await onGetString(defaultValue: defaultValue)
+        : defaultValue;
   }
+
+  Future<String> onGetString({String defaultValue});
+
+  /// Not ovveride this method
+  @protected
+  Future<void> setString({@required String value}) async {
+    await onSetString(value: value);
+    await updateVersion();
+
+  }
+  Future<void> onSetString({@required String value});
 
   Future<Map<String, dynamic>> getMap({Map<String, dynamic> defaultValue}) async {
     return jsonDecode((await getString())??defaultValue);

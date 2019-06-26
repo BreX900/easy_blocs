@@ -11,11 +11,11 @@ class FormHandler {
   
   final List<SubmitController> _submitControllers = [];
 
-  final Validator _preValidator, _postValidator;
+  final List<Validator> _preValidators, _postValidators;
 
   FormHandler({
-    Validator preValidator, Validator postValidator,
-  }) : this._preValidator = preValidator, this._postValidator = postValidator;
+    List<Validator> preValidators, List<Validator> postValidators,
+  }) : this._preValidators = preValidators??[], this._postValidators = postValidators??[];
 
   void dispose() {
     _submitControllers.forEach((controller) => controller.dispose());
@@ -42,12 +42,21 @@ class FormHandler {
   /// Validate Fields before save values
   @mustCallSuper
   Future<bool> preValidate() async {
-    return formKey.currentState.validate() && (_preValidator == null || await _preValidator());
+    return formKey.currentState.validate() && await _validate(_preValidators);
   }
 
   /// Validate Fields after save values
-  Future<bool> postValidate() async {
-    return (_postValidator == null || await _postValidator());
+  Future<bool> postValidate() => _validate(_postValidators);
+
+  void addPostValidator(Validator validator) => _postValidators.add(validator);
+  void addPreValidator(Validator validator) => _preValidators.add(validator);
+
+  Future<bool> _validate(List<Validator> validators) async {
+    for (var validator in validators) {
+      if (!await validator())
+    return false;
+  }
+    return true;
   }
   
   addSubmitController(SubmitController controller) {

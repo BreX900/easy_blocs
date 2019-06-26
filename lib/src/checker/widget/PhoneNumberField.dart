@@ -18,7 +18,6 @@ class PhoneNumberField extends IntField {
     checker: checker, translator: translator,
     decoration: decoration,
   );
-
 }
 
 

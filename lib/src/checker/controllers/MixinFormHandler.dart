@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 
 
 /// Must call [formHandler.dispose()]
+@deprecated
 mixin MixinFormHandler implements FormHandler {
   FormHandler get formHandler;
 

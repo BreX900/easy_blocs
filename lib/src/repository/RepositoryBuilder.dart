@@ -49,7 +49,7 @@ class RepositoryBuilder<T> extends StatelessWidget {
         final _bloc = RepositoryBloc.of();
 
         return StreamBuilder<RepositoryData<T>>(
-          initialData: snapshot.data.copyWith(sp: const Sp()),
+          initialData: snapshot.data.copyWith(sp: Sp()),
           stream: Observable.combineLatest2(_bloc.outLocale, _bloc.outSp, (locale, sp) {
             return snapshot.data.copyWith(locale: locale, sp: sp);
           }),

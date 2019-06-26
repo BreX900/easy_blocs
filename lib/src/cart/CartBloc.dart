@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:dash/dash.dart';
 import 'package:easy_blocs/src/cart/Cart.dart';
-import 'package:easy_blocs/src/rxdart_cache/CacheSubject.dart';
+import 'package:easy_blocs/src/rxdart_extension/CacheSubject.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
 
-
-class EasyCartBloc implements Bloc {
+/// Usa il controller
+@deprecated
+class BasicCartBloc implements Bloc {
   @protected @override @mustCallSuper
   void dispose() {
     _cartControl.close();
@@ -42,5 +43,5 @@ class EasyCartBloc implements Bloc {
     _cartControl.add(isEnable ? _cart : null);
   }
 
-  EasyCartBloc.instance();
+  BasicCartBloc.instance();
 }

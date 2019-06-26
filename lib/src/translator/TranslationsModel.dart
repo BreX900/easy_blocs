@@ -21,9 +21,6 @@ class TranslationsMap extends MapBase<String, String> implements Translations {
   String get text => translator(this);
 
   @override
-  String toString() => text;
-
-  @override
   String operator [](Object key) => internalMap[key];
 
   @override
@@ -50,6 +47,9 @@ abstract class Translations {
   const Translations();
 
   String get text;
+  @override
+  String toString() => this.text;
+
   String operator [](String key);
   Iterable<String> get values;
 
@@ -65,9 +65,6 @@ class TranslationsConst extends Translations {
   const TranslationsConst({this.it, this.en}) : super();
 
   String get text => translator(this);
-
-  @override
-  String toString() => this.text;
 
   @override
   String operator [](String key) {

@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 
 /// Must call [hand.dispose()]
+@deprecated
 mixin MixinHand implements Hand {
   Hand get hand;
 

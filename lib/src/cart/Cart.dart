@@ -9,7 +9,7 @@ part 'Cart.g.dart';
 class Cart {
   final List<ProductCart> products;
 
-  Cart(this.products) : assert(products != null);
+  const Cart({this.products: const []}) : assert(products != null);
 
   ProductCart getProduct(String id) {
     return products.firstWhere((item) => item.id == id, orElse: () => null);
@@ -21,12 +21,12 @@ class Cart {
         ? onInsert(ProductCart(id: id, countProducts: 1))
         : onIncrement(product.increment());
   }
-
+  @protected
   bool onInsert(ProductCart product) {
     _update(product);
     return true;
   }
-
+  @protected
   bool onIncrement(ProductCart product) {
     _update(product);
     return true;
@@ -40,12 +40,12 @@ class Cart {
         ? onRemove(product)
         : onDecrease(product);
   }
-
+  @protected
   bool onDecrease(ProductCart product) {
     _update(product);
     return true;
   }
-
+  @protected
   bool onRemove(ProductCart product) {
     products.remove(product);
     return true;

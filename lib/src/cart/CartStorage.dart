@@ -6,40 +6,38 @@ import 'package:flutter/foundation.dart';
 
 
 class CartStorage extends Cart {
-  final StorageRule _storage;
+  final Storage _storage;
 
-  CartStorage(List<ProductCart> products, {
-    @required StorageRule storage,
+  CartStorage({
+    List<ProductCart> products: const [],
+    @required Storage storage,
   }) : assert(storage != null),
-        this._storage = storage, super(products);
+        this._storage = storage, super(products: products);
 
   @override
   bool increment(String id) {
-    return _save(super.increment(id));
+    return _store(super.increment(id));
   }
 
   @override
   bool decrease(String id) {
-    return _save(super.decrease(id));
+    return _store(super.decrease(id));
   }
 
-  bool _save(bool save) {
+  bool _store(bool save) {
     if (save) {
-      _store();
+      _storing();
     }
     return save;
   }
 
-  Future<void> _store() async {
+  Future<void> _storing() async {
     await _storage.setMap(map: toJson());
   }
 
-  static Future<CartStorage> load({String fileName: "CartStorage", String version: 'beta-0'}) async {
-    final storage = InternalStorage(key: fileName, version: version);
-
-    final tmpCart = await storage.getObject(fromJson: Cart.fromJson, );
-
-    return CartStorage(tmpCart?.products??[], storage: storage);
+  static Future<CartStorage> load({Storage storage}) async {
+    final tmpCart = await storage.getObject(fromJson: Cart.fromJson);
+    return CartStorage(products: tmpCart?.products??[], storage: storage);
   }
 }
 

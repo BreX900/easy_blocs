@@ -9,7 +9,13 @@ class EmailField extends StringField {
   EmailField({Key key,
     @required CheckerRule<String, String> checker,
     Translator translator: translatorEmailField,
-    InputDecoration decoration: const InputDecoration(),
+    InputDecoration decoration: const TranslationsInputDecoration(
+      prefixIcon: const Icon(Icons.email),
+      translationsHintText: const TranslationsConst(
+        it: "Indirizzo Email",
+        en: "Email Address",
+      ),
+    ),
   }) : assert(checker != null), super(key: key,
     checker: checker, translator: translator,
     decoration: decoration,

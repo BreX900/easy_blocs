@@ -1,6 +1,4 @@
 import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/checker/controllers/FocusHandler.dart';
-import 'package:easy_blocs/src/rxdart_cache/CacheStreamBuilder.dart';
 import 'package:easy_blocs/src/translator/TranslatorController.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +8,6 @@ import 'package:intl/intl.dart';
 
 class DateTimeField extends StatelessWidget {
   final DateTimeCheckerRule checker;
-  final Hand hand;
   final Translator translator;
   final InputDecoration decoration;
   final DateFormat format;
@@ -21,7 +18,7 @@ class DateTimeField extends StatelessWidget {
   final TimeOfDay initialTime;
 
   DateTimeField({Key key,
-    @required this.checker, @required this.hand, this.translator: dateTimeTranslator,
+    @required this.checker, this.translator: dateTimeTranslator,
     this.decoration: const InputDecoration(),
 
     @required this.format, this.inputType, this.editable: false, this.resetIcon,
@@ -29,23 +26,23 @@ class DateTimeField extends StatelessWidget {
   }) : assert(translator != null), super(key: key,);
 
   DateTimeField.date({Key key,
-    @required DateTimeCheckerRule checker, @required Hand hand, Translator translator: dateTimeTranslator,
+    @required DateTimeCheckerRule checker, Translator translator: dateTimeTranslator,
     InputDecoration decoration: DATE_DECORATION,
 
     bool editable: false, IconData resetIcon,
   }) : this(
-    checker: checker, hand: hand, translator: translator,
+    checker: checker, translator: translator,
     decoration: decoration,
     inputType: InputType.date, format: DateFormat('MM-dd'),
   );
 
   DateTimeField.time({Key key,
-    @required DateTimeCheckerRule checker, @required Hand hand, Translator translator: dateTimeTranslator,
+    @required DateTimeCheckerRule checker, Translator translator: dateTimeTranslator,
     InputDecoration decoration: TIME_DECORATION,
 
     bool editable: false, IconData resetIcon,
   }) : this(
-    checker: checker, hand: hand, translator: translator,
+    checker: checker, translator: translator,
     decoration: decoration,
     inputType: InputType.time, format: DateFormat('HH:mm'),
   );
@@ -54,10 +51,8 @@ class DateTimeField extends StatelessWidget {
     if (checker.lock.locked)
       return null;
     return checker.lock.synchronized(() async {
-      print("ENTER");
       final res = await asyncFunction();
-      print("NEXT");
-      hand.nextFinger(context, checker);
+      checker.nextFinger(context);
       return res;
     });
   }
@@ -84,7 +79,7 @@ class DateTimeField extends StatelessWidget {
 
           obscureText: data.obscureText,
 
-          onFieldSubmitted: (_) => hand.nextFinger(context, checker),
+          onFieldSubmitted: (_) => _securePicker(context, () async {}),
           onSaved: checker.onSaved,
           validator: (value) => translator(checker.validate(value))?.text,
 

@@ -3,11 +3,11 @@ library easy_blocs;
 
 export 'src/cart/Cart.dart';
 export 'src/cart/CartBloc.dart';
+export 'src/cart/CartController.dart';
 export 'src/cart/CartStorage.dart';
 export 'src/cart/CounterProductCart.dart';
 
 
-export 'src/checker/bloc/SubmitBloc.dart';
 
 export 'src/checker/checkers/AddressChecker.dart';
 export 'src/checker/checkers/Checker.dart';
@@ -44,9 +44,11 @@ export 'src/connector/PageConnector.dart';
 export 'src/repository/RepositoryBloc.dart';
 export 'src/repository/RepositoryBuilder.dart';
 
-export 'src/rxdart_cache/CacheObservable.dart';
-export 'src/rxdart_cache/CacheStreamBuilder.dart';
-export 'src/rxdart_cache/CacheSubject.dart';
+export 'src/rxdart_extension/CacheObservable.dart';
+export 'src/rxdart_extension/CacheStreamBuilder.dart';
+export 'src/rxdart_extension/CacheSubject.dart';
+export 'src/rxdart_extension/Controller.dart';
+export 'src/rxdart_extension/Data.dart';
 
 export 'src/sp/SpController.dart';
 export 'src/sp/Sp.dart';
@@ -64,4 +66,6 @@ export 'src/translator/TranslationsModel.dart';
 export 'src/translator/TranslatorController.dart';
 export 'src/translator/Widgets.dart';
 
+export 'package:easy_blocs/src/rxdart_extension/Controller.dart';
 export 'src/json.dart';
+

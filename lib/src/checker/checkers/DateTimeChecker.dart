@@ -50,6 +50,8 @@ abstract class DateTimeCheckerRule extends FingerNode {
 
   void onSaved(DateTime dateTime);
 
+  void nextFinger(BuildContext context);
+
   DateTime get initialDate;
   DateTime get firstDate;
   DateTime get lastDate;

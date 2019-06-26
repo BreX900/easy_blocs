@@ -19,8 +19,9 @@ class CheckerField<V> extends CacheStreamBuilder<DataField<V>> {
         focusNode: checker.focusNode,
         decoration: decoration.copyWith(
           errorText: translator(snap.data.error)?.text,
+          errorMaxLines: decoration.errorMaxLines??2,
         ),
-
+        keyboardType: checker.keyboardType,
         obscureText: data.obscureText,
 
         maxLength: checker.maxLength,

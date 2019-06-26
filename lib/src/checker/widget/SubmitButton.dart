@@ -1,5 +1,5 @@
 import 'package:easy_blocs/src/checker/controllers/SubmitController.dart';
-import 'package:easy_blocs/src/rxdart_cache/CacheStreamBuilder.dart';
+import 'package:easy_blocs/src/rxdart_extension/CacheStreamBuilder.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

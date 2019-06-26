@@ -26,6 +26,9 @@ class IntChecker extends Checker<int, String> {
   void onSaved(String str) {
     add(data.copyWith(value: int.tryParse(str)));
   }
+
+  @override
+  final TextInputType keyboardType = TextInputType.number;
 }
 
 

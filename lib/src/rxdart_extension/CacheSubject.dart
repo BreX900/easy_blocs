@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:easy_blocs/src/rxdart_cache/CacheObservable.dart';
+import 'package:easy_blocs/src/rxdart_extension/CacheObservable.dart';
 import 'package:rxdart/rxdart.dart';
 
 

@@ -7,11 +7,17 @@ class NominativeChecker extends StringChecker {
   NominativeChecker({@required Hand hand}) : super(hand: hand);
 
   @override
+  void onSaved(String value) {
+    super.onSaved(value.trim());
+  }
+
+  @override
   Object validate(String str) {
+    str = str.trim();
     final error = super.validate(str);
     if (error != null)
       return error;
-    if(str.split(' ').length != 2)
+    if(str.split(' ').length <= 1)
       return NominativeAuthError.INVALID;
     return null;
   }

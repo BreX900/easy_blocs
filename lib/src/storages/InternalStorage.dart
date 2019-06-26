@@ -2,15 +2,24 @@ import 'dart:io';
 
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/storages/Storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
 
 
-class InternalStorage extends StorageRule {
+class InternalStorage extends Storage {
   final String _key;
 
   InternalStorage({
-    @required String key, String version: 'beta-0',
-  }) : this._key = key, super(key: key, version: version);
+    @required String key,
+    @required VersionManager versionManager,
+  }) : this._key = key, assert(key != null), super(versionManager: versionManager);
+
+  InternalStorage.manager({
+    @required VersionManager versionManager,
+  }) : this(
+    key: versionManager.key,
+    versionManager: versionManager,
+  );
 
   File _file;
 
@@ -20,8 +29,8 @@ class InternalStorage extends StorageRule {
     return _file;
   }
 
-  @override
-  Future<String> getString({String defaultValue}) async {
+  @override @protected
+  Future<String> onGetString({String defaultValue}) async {
     try {
       return await (await _getFile()).readAsString();
     } catch(error) {
@@ -29,10 +38,9 @@ class InternalStorage extends StorageRule {
     }
   }
 
-  @override
-  Future<void> setString({String value}) async {
+  @override @protected
+  Future<void> onSetString({String value}) async {
     assert(value != null);
-    super.setString(value: value);
     final file = await _getFile();
     if (! await file.exists()) {
       await file.create(recursive: true);
