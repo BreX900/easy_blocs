@@ -81,7 +81,7 @@ packages:
   easy_widget:
     dependency: transitive
     description:
-      path: "..\\..\\easy_packages"
+      path: "..\\..\\easy_widget"
       relative: true
     source: path
     version: "0.0.1+16"

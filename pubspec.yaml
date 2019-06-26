@@ -24,7 +24,7 @@ dependencies:
 
 
   easy_widget:
-    path: ../easy_packages
+    path: ../easy_widget
 
   json_annotation: any
 
