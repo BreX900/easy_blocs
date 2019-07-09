@@ -15,6 +15,12 @@ class Cart {
     return products.firstWhere((item) => item.id == id, orElse: () => null);
   }
 
+  int getPrice(String id, int price) => (getProduct(id)?.countProducts??0)*price;
+
+  int getTotalPrice(List<ProductCartPriceRule> products) {
+    return products.fold(0, (price, product) => price + getPrice(product.id, product.price));
+  }
+
   bool increment(String id) {
     final product = getProduct(id);
     return product == null
@@ -98,4 +104,10 @@ class ProductCart {
 
   static ProductCart fromJson(Map json) => _$ProductCartFromJson(json);
   Map<String, dynamic> toJson() => _$ProductCartToJson(this);
+}
+
+
+abstract class ProductCartPriceRule {
+  String get id;
+  int get price;
 }

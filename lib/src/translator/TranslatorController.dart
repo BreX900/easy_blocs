@@ -11,9 +11,8 @@ typedef Translations Translator(Object value);
 const String _defaultTranslation = 'en';
 
 String translator(Translations translations) {
-  return translations[RepositoryBloc.of().translatorController._locale.languageCode]??
-      translations[_defaultTranslation]??
-      translations.values.first;
+  return translations[RepositoryBloc.of().translatorController.locale.languageCode]
+      ?? (translations[_defaultTranslation] ?? translations.values.first);
 }
 
 
@@ -21,12 +20,12 @@ enum LoadingLanguage {
   SUCCESS, FAILED_OR_NOT_START,
 }
 
-
+/// In ThemeData add 'platform: TargetPlatform.android,'
 class TranslatorController {
   static const _KEY = "UserTranslation";
   LoadingLanguage _loading = LoadingLanguage.FAILED_OR_NOT_START;
 
-  Locale get _locale => _localeControl.value;
+  Locale get locale => _localeControl.value;
   set _locale(Locale locale) => _localeControl.add(locale);
 
   TranslatorController({Locale locale: const Locale('en')}) : this._localeControl = BehaviorSubject.seeded(locale) {
@@ -48,7 +47,7 @@ class TranslatorController {
   Future<void> inLocale(Locale lc) async {
     assert(lc != null);
 
-    if (lc != _locale) {
+    if (lc != locale) {
       _locale = lc;
       await _updateStore();
     }
@@ -63,7 +62,7 @@ class TranslatorController {
   }
 
   Future<void> _updateStore() async {
-    await (await SharedPreferences.getInstance()).setString(_KEY, _locale.languageCode);
+    await (await SharedPreferences.getInstance()).setString(_KEY, locale.languageCode);
   }
 }
 

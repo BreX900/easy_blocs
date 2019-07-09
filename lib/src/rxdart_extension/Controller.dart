@@ -27,7 +27,42 @@ abstract class Controller {
     };
     return controller;
   }
+
+
 }
+
+
+
+
+
+/*class PocketStream<V> {
+  final HashMap<String, StreamSubscription> _signedListeners = HashMap();
+
+  void onCancel() {
+    _signedListeners.values.forEach((sub) => sub.cancel());
+  }
+
+  void operator []=(String key, StreamSubscription value) => _signedListeners[key] = value;
+
+  void catchStream<C, E>(StreamController<C> controller, String tag, Stream<E> stream, {
+    @required void onData(E event), Function onError, void onDone(), bool cancelOnError: false,
+  }) {
+    assert(tag != null && stream != null && onData != null);
+    _signedListeners[tag]?.cancel();
+    _signedListeners[tag] = stream.listen(onData,
+      onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+    );
+  }
+
+  void addStream<V>(StreamController<V> controller, String tag, Stream<V> stream, {
+    Function onError, void onDone(), bool cancelOnError
+  }) {
+    catchStream<V, V>(
+      controller, tag, stream,
+      onData: controller.add, onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+    );
+  }
+}*/
 
 
 abstract class PublishController {

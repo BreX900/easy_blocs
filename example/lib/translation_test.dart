@@ -18,7 +18,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-const String FLAGS = "assets/img/flags/";
 
 class App extends StatefulWidget {
   @override
@@ -33,14 +32,11 @@ class _AppState extends State<App> {
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
-          TranslationButton(
-            path: FLAGS,
-          ),
+          TranslationButton(),
         ],
       ),
       endDrawer: TranslationDrawer(
         locales:[Locale('it'), Locale('en')],
-        path: FLAGS,
       ),
     );
   }

@@ -49,6 +49,7 @@ export 'src/rxdart_extension/CacheStreamBuilder.dart';
 export 'src/rxdart_extension/CacheSubject.dart';
 export 'src/rxdart_extension/Controller.dart';
 export 'src/rxdart_extension/Data.dart';
+export 'src/rxdart_extension/PocketBloc.dart';
 
 export 'src/sp/SpController.dart';
 export 'src/sp/Sp.dart';

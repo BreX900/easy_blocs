@@ -27,12 +27,12 @@ abstract class Storage with MixinVersionManager {
   Future<void> setString({@required String value}) async {
     await onSetString(value: value);
     await updateVersion();
-
   }
   Future<void> onSetString({@required String value});
 
   Future<Map<String, dynamic>> getMap({Map<String, dynamic> defaultValue}) async {
-    return jsonDecode((await getString())??defaultValue);
+    final raw = await getString();
+    return raw == null ? defaultValue : jsonDecode(raw);
   }
 
   @mustCallSuper
@@ -42,7 +42,8 @@ abstract class Storage with MixinVersionManager {
   }
 
   Future<T> getObject<T>({@required T fromJson(Map<String, dynamic> map), T defaultValue}) async {
-    return fromJson((await getMap())??defaultValue);
+    final raw = await getMap();
+    return raw == null ? defaultValue : fromJson(raw);
   }
 
   @mustCallSuper

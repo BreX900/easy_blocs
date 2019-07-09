@@ -5,32 +5,32 @@ import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 
 
-class CartController implements CartControllerRule{
-  final Cart _cart;
+class CartController implements CartControllerRule {
 
-  CartController({Cart cart: const Cart(), void onListen()}) : assert(cart!=null), this._cart = cart {
-    _cartController = PublishSubject(onListen: () {
-      _cartController.add(_cart);
+  CartController({Cart cart: const Cart(), void onListen()}) {
+    _cartController.onListen = () {
+      _cartController.add(cart);
       if (onListen != null) onListen();
-    });
+    };
   }
   CartController.storage({
     Cart cart: const Cart(), @required Storage storage,
     void onListen(),
-  }) : assert(cart!=null), this._cart = cart {
-    _cartController = PublishSubject(onListen: () async {
+  }) {
+    _cartController.onListen = () async {
       _cartController.add(await CartStorage.load(
         storage: storage,
       ));
       if (onListen != null) onListen();
-    });
+    };
   }
 
   void close() {
     _cartController.close();
   }
 
-  PublishSubject<Cart> _cartController;
+  final BehaviorSubject<Cart> _cartController = BehaviorSubject();
+  Cart get _cart => _cartController.value;
   Observable<Cart> get outCart => _cartController.stream;
 
   void add(Cart cart) {

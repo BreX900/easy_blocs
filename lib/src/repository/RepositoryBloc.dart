@@ -15,6 +15,7 @@ class RepositoryBloc with MixinTranslatorController, MixinSpController implement
   }
 
   final TranslatorController translatorController = TranslatorController();
+  Locale get locale => translatorController.locale;
 
   final SpController spController = SpController();
 

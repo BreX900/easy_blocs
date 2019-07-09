@@ -79,7 +79,7 @@ class TranslationsConst extends Translations {
   }
 
   @override
-  Iterable<String> get values => [en, it];
+  Iterable<String> get values => [en, it]..removeWhere((value) => value == null);
 
   static TranslationsMap fromJson(Map<String, String> map) => TranslationsMap.fromJson(map);
   Map<String, dynamic> toJson() => {

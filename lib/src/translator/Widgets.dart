@@ -9,21 +9,22 @@ import 'package:flutter/painting.dart';
 class TranslationDrawer extends StatelessWidget {
   final translationBloc = RepositoryBloc.of();
   final List<Locale> locales;
-  final String path;
+  final String assetFolder;
   final double size;
 
   final Color backgroundColor;
   final EdgeInsets padding, flagPadding;
 
-  TranslationDrawer({Key key, @required this.locales, @required this.path, this.size: 40,
+  TranslationDrawer({Key key, @required this.locales, this.assetFolder: FlagView.ASSET_FOLDER, this.size: 40,
     this.backgroundColor,
     this.padding: const EdgeInsets.symmetric(horizontal: 16.0),
     this.flagPadding: const EdgeInsets.all(8.0),
   }) :
-        assert(locales != null), assert(path != null), super(key: key);
+        assert(locales != null), assert(assetFolder != null), super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       color: backgroundColor??Theme.of(context).canvasColor,
       width: size+flagPadding.horizontal+padding.horizontal,
@@ -35,7 +36,7 @@ class TranslationDrawer extends StatelessWidget {
             return FlagView(
               padding: flagPadding,
               locale: lc,
-              path: path,
+              assetFolder: assetFolder,
               size: size,
               child: InkWell(
                 onTap: () {
@@ -54,11 +55,11 @@ class TranslationDrawer extends StatelessWidget {
 
 class TranslationButton extends StatelessWidget {
   final translatorBloc = RepositoryBloc.of();
-  final String path;
+  final String assetFolder;
   final double size;
 
-  TranslationButton({Key key, @required this.path, this.size: 40}) :
-        assert(path != null), super(key: key);
+  TranslationButton({Key key, this.assetFolder: FlagView.ASSET_FOLDER, this.size: 40}) :
+        assert(assetFolder != null), super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +71,7 @@ class TranslationButton extends StatelessWidget {
 
         return FlagView(
           locale: snapshot.data,
-          path: path,
+          assetFolder: assetFolder,
           size: size,
           child: InkWell(
             onTap: () {
