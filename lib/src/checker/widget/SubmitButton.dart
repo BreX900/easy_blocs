@@ -19,12 +19,14 @@ class SubmitButton extends StatelessWidget {
 
   SubmitButton.raised({
     @required SubmitController controller,
+    Color color,
     Widget child,
   }) : this(
     controller: controller,
     builder: (_, onPressed) {
       return RaisedButton(
         onPressed: onPressed,
+        color: color,
         child: child,
       );
     },
@@ -32,11 +34,14 @@ class SubmitButton extends StatelessWidget {
 
   SubmitButton.flat({
     @required SubmitController controller,
+    Color textColor, Color color,
     Widget child,
   }) : this(
     controller: controller,
     builder: (_, onPressed) {
       return FlatButton(
+        textColor: textColor,
+        color: color,
         onPressed: onPressed,
         child: child,
       );

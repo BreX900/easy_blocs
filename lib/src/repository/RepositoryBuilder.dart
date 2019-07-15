@@ -11,6 +11,8 @@ typedef  Future<T> _BackgroundTask<T>(BuildContext context, SharedPreferences sh
 
 
 class RepositoryBuilder<T> extends StatelessWidget {
+  final _repositoryBloc = RepositoryBloc.of();
+
   final _RepositoryBuilder builder;
 
   final _BackgroundTask<T> backgroundTask;
@@ -25,7 +27,7 @@ class RepositoryBuilder<T> extends StatelessWidget {
 
   Future<RepositoryData<T>> _future(BuildContext context) async {
     final sharedPreferences = await SharedPreferences.getInstance();
-    RepositoryBloc.init(sharedPreferences: sharedPreferences);
+    _repositoryBloc.init(sharedPreferences: sharedPreferences);
     final data = await backgroundTask(context, sharedPreferences);
     return RepositoryData<T>(sharedPreferences: sharedPreferences, data: data);
   }
@@ -46,11 +48,9 @@ class RepositoryBuilder<T> extends StatelessWidget {
           );
         }
 
-        final _bloc = RepositoryBloc.of();
-
         return StreamBuilder<RepositoryData<T>>(
           initialData: snapshot.data.copyWith(sp: Sp()),
-          stream: Observable.combineLatest2(_bloc.outLocale, _bloc.outSp, (locale, sp) {
+          stream: Observable.combineLatest2(_repositoryBloc.outLocale, _repositoryBloc.outSp, (locale, sp) {
             return snapshot.data.copyWith(locale: locale, sp: sp);
           }),
           builder: (context, snap) {

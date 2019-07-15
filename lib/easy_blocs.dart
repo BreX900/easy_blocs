@@ -6,6 +6,7 @@ export 'src/cart/CartBloc.dart';
 export 'src/cart/CartController.dart';
 export 'src/cart/CartStorage.dart';
 export 'src/cart/CounterProductCart.dart';
+export 'src/cart/PriceView.dart';
 
 
 
@@ -41,6 +42,8 @@ export 'src/checker/widget/SubmitButton.dart';
 
 export 'src/connector/PageConnector.dart';
 
+
+
 export 'src/repository/RepositoryBloc.dart';
 export 'src/repository/RepositoryBuilder.dart';
 
@@ -49,6 +52,9 @@ export 'src/rxdart_extension/CacheStreamBuilder.dart';
 export 'src/rxdart_extension/CacheSubject.dart';
 export 'src/rxdart_extension/Controller.dart';
 export 'src/rxdart_extension/Data.dart';
+export 'package:easy_blocs/src/rxdart_extension/ManagerProvider.dart';
+export 'package:easy_blocs/src/rxdart_extension/ManagerProviderTree.dart';
+export 'src/rxdart_extension/MixinCompositeSubscription.dart';
 export 'src/rxdart_extension/PocketBloc.dart';
 
 export 'src/sp/SpController.dart';

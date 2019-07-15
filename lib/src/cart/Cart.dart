@@ -21,6 +21,8 @@ class Cart {
     return products.fold(0, (price, product) => price + getPrice(product.id, product.price));
   }
 
+  int get countProducts => products.fold(0, (value, product) => value+product.countProducts);
+
   bool increment(String id) {
     final product = getProduct(id);
     return product == null

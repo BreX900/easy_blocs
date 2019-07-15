@@ -5,23 +5,18 @@ import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
 
-class PocketBloc implements Bloc {
-  @override
-  dispose() {
-    _pockets.forEach((sub) => sub.cancel());
-  }
-
+abstract class PocketBloc implements Bloc {
   final List<PocketSub> _pockets = List();
 
   PocketSub take(StreamController controller, {
     void onListen(), void onCancel(),
   }) {
     return _pockets.singleWhere((pocket) => pocket._controller == controller,
-      orElse: () {
-        final pocket = PocketSub(controller);
-        _pockets.add(pocket);
-        return pocket;
-      }
+        orElse: () {
+          final pocket = PocketSub(controller);
+          _pockets.add(pocket);
+          return pocket;
+        }
     );
   }
 }
@@ -42,18 +37,17 @@ class PocketSub<T> {
     };
     _controller.onCancel = () {
       if (onCancel != null) onCancel();
+      _subscription?.cancel();
       _subscriptions.forEach((sub) => sub.cancel());
     };
   }
-
-  void cancel() => _subscription?.cancel();
 
   set addSubscription(StreamSubscription sub) => _subscriptions.add(sub);
   set addListener(void listener()) => _listeners.add(listener);
 
   void catchSource<E>({
-    @required ValueGetter<FutureOr<Stream<E>>> source,
-    @required void onData(E event), Function onError, void onDone(), bool cancelOnError: false,
+    @required ValueGetter<FutureOr<Stream<E>>> source, @required void onData(E event),
+    Function onError, void onDone(), bool cancelOnError: false,
   }) {
     assert(source != null && onData != null);
 
@@ -65,7 +59,7 @@ class PocketSub<T> {
     };
   }
 
-  void addSource(ValueGetter<FutureOr<Stream<T>>> source, {
+  void pipeSource(ValueGetter<FutureOr<Stream<T>>> source, {
     Function onError, void onDone(), bool cancelOnError
   }) {
     catchSource<T>(
@@ -74,8 +68,9 @@ class PocketSub<T> {
     );
   }
 
-  void setStream<E>(Stream<E> stream, {
-    @required void onData(E event), Function onError, void onDone(), bool cancelOnError: false,
+  void catchStream<E>({
+    @required Stream<E> stream, @required void onData(E event),
+    Function onError, void onDone(), bool cancelOnError: false,
   }) {
     assert(stream != null && onData != null);
     _subscription?.cancel();
@@ -84,12 +79,12 @@ class PocketSub<T> {
     );
   }
 
-  /*void stream(Stream<T> stream, {
-    Function onError, void onDone(), bool cancelOnError
+  void pipeStream(Stream<T> stream, {
+    Function onError, void onDone(), bool cancelOnError: false,
   }) {
     catchStream<T>(
-      stream,
-      onData: _controller.add, onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+      stream: stream, onData: _controller.add,
+      onError: onError, onDone: onDone, cancelOnError: cancelOnError,
     );
-  }*/
+  }
 }

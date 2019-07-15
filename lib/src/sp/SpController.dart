@@ -2,36 +2,46 @@ import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/sp/Sp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:rxdart/rxdart.dart';
 
 
-class SpController {
+abstract class SpManager {
+  Observable<Sp> get outSp;
+  Sp get sp;
+
+  Future<void> inContext(BuildContext context);
+}
+
+
+class SpController implements SpManager {
   Sp get _sp => _spController.value;
 
   void dispose() {
     _spController.close();
   }
 
-  CacheSubject<Sp> _spController = CacheSubject.seeded(Sp());
-  CacheObservable<Sp> get outSp => _spController.stream;
+  BehaviorSubject<Sp> _spController = BehaviorSubject.seeded(Sp());
+  Sp get sp => _spController.value;
+  Observable<Sp> get outSp => _spController.stream;
 
   Future<void> inContext(BuildContext context) async {
-    if (_sp == null || _sp.shouldUpdate(context)) {
-      _spController.add(Sp.context(context));
+    if (_sp == null) {
+      final sp = _sp.shouldUpdate(context);
+      if (sp != null) _spController.add(sp);
     }
   }
 
-  SpController() {
-    _spController.listen(print);
-  }
+  SpController();
 }
 
 
-mixin MixinSpController {
-  SpController get spController;
+mixin MixinSpManager implements SpManager{
+  SpManager get spManager;
+  Sp get sp => spManager.sp;
 
-  CacheObservable<Sp> get outSp => spController.outSp;
+  Observable<Sp> get outSp => spManager.outSp;
 
   Future<void> inContext(BuildContext context) {
-    return spController.inContext(context);
+    return spManager.inContext(context);
   }
 }

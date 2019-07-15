@@ -1,11 +1,12 @@
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/cart/Cart.dart';
+import 'package:easy_blocs/src/rxdart_extension/ManagerProvider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 
 
-class CartController implements CartControllerRule {
+class CartController implements Controller, CartManager {
 
   CartController({Cart cart: const Cart(), void onListen()}) {
     _cartController.onListen = () {
@@ -53,7 +54,7 @@ class CartController implements CartControllerRule {
 }
 
 
-abstract class CartControllerRule {
+abstract class CartManager implements Manager {
 
   Observable<Cart> get outCart;
 
@@ -63,8 +64,8 @@ abstract class CartControllerRule {
 }
 
 
-mixin MixinCartController implements CartControllerRule {
-  CartControllerRule get cartController;
+mixin MixinCartManager implements CartManager {
+  CartManager get cartController;
 
   Observable<Cart> get outCart => cartController.outCart;
 
@@ -72,6 +73,8 @@ mixin MixinCartController implements CartControllerRule {
 
   Future<void> inDecrease(String id) => cartController.inDecrease(id);
 }
+
+
 
 /// Vedi [CartStorage]
 /*class StorageCartController extends CartController {

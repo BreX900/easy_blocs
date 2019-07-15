@@ -10,7 +10,7 @@ class Sp {
     assert(context != null);
 
     final mediaQuery = MediaQuery.of(context);
-    print(mediaQuery.size);
+    
     return Sp(
       width: width, height: height,
       allowFontScaling: allowFontScaling,
@@ -22,8 +22,12 @@ class Sp {
     );
   }
 
-  bool shouldUpdate(BuildContext context) {
-    return MediaQuery.of(context).size != screenSize;
+  Sp shouldUpdate(BuildContext context) {
+    final sp = Sp.context(context);
+
+    return sp.pixelRatio == pixelRatio || sp.screenSize == screenSize
+        || sp.statusBarHeight == statusBarHeight || sp.bottomBarHeight == bottomBarHeight
+        || sp.textScaleFactor == textScaleFactor ?  null : sp;
   }
 
   Sp({
@@ -33,7 +37,7 @@ class Sp {
 
     this.mediaQueryData,
     this.pixelRatio: 3.0,
-    this.screenSize: const Size(361, 640), // Samsung A2 2017
+    this.screenSize: const Size(360, 640), // Samsung A2 2017
     this.statusBarHeight: 64.0,
     this.bottomBarHeight: 64.0,
     this.textScaleFactor: 1.0,

@@ -93,11 +93,13 @@ class TextThemeSp extends TextTheme {
   }) {
     fontSize = fontSize*2.75;
     letterSpacing = letterSpacing*1.25;
+    final wordkSpacing = style?.wordSpacing == null ? null : sp.get(style.wordSpacing)*1.25;
     if (style == null)
       return TextStyle(
         fontSize: sp.get(fontSize),
         fontWeight: fontWeight,
         letterSpacing: sp.get(letterSpacing),
+        wordSpacing: wordkSpacing,
         color: adv ? color : null,
         decoration: adv ? decoration : null,
       );
@@ -105,6 +107,7 @@ class TextThemeSp extends TextTheme {
       fontSize: sp.get(style.fontSize??fontSize),
       fontWeight: style.fontWeight??fontWeight,
       letterSpacing: sp.get(style.letterSpacing??letterSpacing),
+      wordSpacing: wordkSpacing,
       color: adv ? style.color??color : style.color,
       decoration: adv ? style.decoration??decoration : style.decoration,
     );

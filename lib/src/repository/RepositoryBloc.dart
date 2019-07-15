@@ -6,34 +6,31 @@ import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-class RepositoryBloc with MixinTranslatorController, MixinSpController implements Bloc, SpController {
+class RepositoryBloc with MixinTranslatorManager, MixinSpManager implements Bloc, SpController {
   @protected
   @override
   void dispose() {
-    translatorController.close();
-    spController.dispose();
+    _translatorController.close();
+    _spController.dispose();
   }
 
-  final TranslatorController translatorController = TranslatorController();
-  Locale get locale => translatorController.locale;
+  final TranslatorController _translatorController = TranslatorController();
+  TranslatorManager get translatorManager => _translatorController;
 
-  final SpController spController = SpController();
-
+  final SpController _spController = SpController();
+  SpManager get spManager => _spController;
 
   SharedPreferences _sharedPreferences;
   SharedPreferences get sharedPreferences => _sharedPreferences;
 
   Future<void> inContext(BuildContext context) async {
-    await translatorController.inContext(context);
-    await spController.inContext(context);
+    await _translatorController.inContext(context);
+    await spManager.inContext(context);
   }
-
+  void init({@required SharedPreferences sharedPreferences}) {
+    _sharedPreferences = sharedPreferences;
+  }
   RepositoryBloc.instance();
   factory RepositoryBloc.of() => $Provider.of<RepositoryBloc>();
-  factory RepositoryBloc.init({@required SharedPreferences sharedPreferences}) {
-   final bloc = $Provider.of<RepositoryBloc>();
-   bloc._sharedPreferences = sharedPreferences;
-   return bloc;
-  }
   static void close() => $Provider.dispose<RepositoryBloc>();
 }
