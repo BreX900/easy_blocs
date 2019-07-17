@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'package:dash/dash.dart';
 import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
 
 
-abstract class PocketBloc implements Bloc {
+mixin PocketBloc {
   final List<PocketSub> _pockets = List();
 
-  PocketSub take(StreamController controller, {
+  PocketSub pocket(StreamController controller, {
     void onListen(), void onCancel(),
   }) {
     return _pockets.singleWhere((pocket) => pocket._controller == controller,
@@ -59,15 +57,6 @@ class PocketSub<T> {
     };
   }
 
-  void pipeSource(ValueGetter<FutureOr<Stream<T>>> source, {
-    Function onError, void onDone(), bool cancelOnError
-  }) {
-    catchSource<T>(
-      source: source,
-      onData: _controller.add, onError: onError, onDone: onDone, cancelOnError: cancelOnError,
-    );
-  }
-
   void catchStream<E>({
     @required Stream<E> stream, @required void onData(E event),
     Function onError, void onDone(), bool cancelOnError: false,
@@ -79,6 +68,28 @@ class PocketSub<T> {
     );
   }
 
+  void catchFount<E>({
+    @required Fount<E> fount, @required void onData(E event),
+    Function onError, void onDone(), bool cancelOnError: false,
+  }) {
+    assert(fount != null && onData != null);
+
+    addListener = () async {
+      addSubscription =  fount.stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+      );
+    };
+  }
+
+  void pipeSource(ValueGetter<FutureOr<Stream<T>>> source, {
+    Function onError, void onDone(), bool cancelOnError
+  }) {
+    catchSource<T>(
+      source: source,
+      onData: _controller.add, onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+    );
+  }
+
   void pipeStream(Stream<T> stream, {
     Function onError, void onDone(), bool cancelOnError: false,
   }) {
@@ -87,4 +98,22 @@ class PocketSub<T> {
       onError: onError, onDone: onDone, cancelOnError: cancelOnError,
     );
   }
+
+  void pipeFount(Fount<T> fount, {
+    Function onError, void onDone(), bool cancelOnError
+  }) {
+    catchFount(
+      fount: fount,
+      onData: _controller.add, onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+    );
+  }
 }
+
+class Fount<V> {
+  final ValueGetter<Stream<V>> _source;
+
+  Fount(this._source);
+
+  Stream<V> get stream => _source();
+}
+

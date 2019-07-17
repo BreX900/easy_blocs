@@ -14,7 +14,7 @@ class DateTimeChecker extends Checker<DateTime, DateTime> implements DateTimeChe
 
   DateTimeChecker({@required Hand hand,
     this.initialDate, DateTime firstDate, DateTime lastDate, this.initialTime
-  }) : this.firstDate = firstDate??DateTime(1900), this.lastDate = lastDate??DateTime(2100),
+  }) : this.firstDate = firstDate??DateTime(1900), this.lastDate = lastDate??DateTime(2100, 12, 28, 23, 59, 59),
         super(hand: hand);
 
   TimeOfDay get time => TimeOfDay(hour: value.hour, minute: value.minute);

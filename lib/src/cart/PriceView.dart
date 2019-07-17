@@ -1,7 +1,6 @@
 import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart' as intl;
 
 
 class PriceView extends Text {

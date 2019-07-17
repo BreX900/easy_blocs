@@ -1,12 +1,11 @@
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/cart/Cart.dart';
-import 'package:easy_blocs/src/rxdart_extension/ManagerProvider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 
 
-class CartController implements Controller, CartManager {
+class CartController extends Skeleton implements CartManager {
 
   CartController({Cart cart: const Cart(), void onListen()}) {
     _cartController.onListen = () {
@@ -25,8 +24,9 @@ class CartController implements Controller, CartManager {
       if (onListen != null) onListen();
     };
   }
-
-  void close() {
+  @override
+  void dispose() {
+    super.dispose();
     _cartController.close();
   }
 
@@ -54,7 +54,7 @@ class CartController implements Controller, CartManager {
 }
 
 
-abstract class CartManager implements Manager {
+abstract class CartManager implements Bone {
 
   Observable<Cart> get outCart;
 

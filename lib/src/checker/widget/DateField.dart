@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/translator/TranslatorController.dart';
+import 'package:flutter/cupertino.dart' as cp;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 
 
 class DateTimeField extends StatelessWidget {
@@ -84,7 +88,18 @@ class DateTimeField extends StatelessWidget {
           validator: (value) => translator(checker.validate(value))?.text,
 
           datePicker: (_context) => _securePicker(_context, () {
-            return showDatePicker(
+            Completer<DateTime> completer = Completer();
+            DatePicker.showDatePicker(context,
+              minDateTime: checker.firstDate,
+              maxDateTime: checker.lastDate,
+              initialDateTime: checker.initialDate,
+              pickerMode: DateTimePickerMode.date,
+              onCancel: () => completer.complete(),
+              onConfirm: (datetime, list) => completer.complete(datetime),
+            );
+            return completer.future.whenComplete(() => Future.delayed(Duration(milliseconds: 300))
+                .whenComplete(() => checker.nextFinger(_context)));
+            /*return showDatePicker(
               context: _context,
               firstDate: checker.firstDate,
               lastDate: checker.lastDate,
@@ -93,15 +108,29 @@ class DateTimeField extends StatelessWidget {
               //locale: widget.locale,
               //selectableDayPredicate: widget.selectableDayPredicate,
               //textDirection: widget.textDirection,
-              //builder: widget.widgetBuilder,
-            );
+              builder: (_, child) => CupertinoDatePicker(),
+            );*/
           }),
           timePicker: (_context) => _securePicker(_context, () {
-            return showTimePicker(
+            Completer<DateTime> completer = Completer();
+            DatePicker.showDatePicker(context,
+              minDateTime: checker.firstDate,
+              maxDateTime: checker.lastDate,
+              initialDateTime: checker.initialDate,
+              pickerMode: DateTimePickerMode.time,
+              onCancel: () => completer.complete(),
+              onConfirm: (datetime, list) => completer.complete(datetime),
+            );
+            return completer.future.then((datetime) {
+              Future.delayed(Duration(milliseconds: 300))
+                  .whenComplete(() => checker.nextFinger(_context));
+              return TimeOfDay.fromDateTime(datetime);
+            });
+            /*return showTimePicker(
               context: _context,
               //builder: ,
               initialTime: initialTime ?? TimeOfDay.now(),
-            );
+            );*/
           }),
 
         );
