@@ -11,9 +11,9 @@ class IntChecker extends Checker<int, String> {
   @override
   Object validate(String str) {
     if (str == null || str.isEmpty)
-      return IntFieldError.EMPTY;
+      return IntFieldErrors.EMPTY;
     else if(int.tryParse(str) == null)
-      return IntFieldError.INVALID;
+      return IntFieldErrors.INVALID;
     return null;
   }
 
@@ -32,7 +32,7 @@ class IntChecker extends Checker<int, String> {
 }
 
 
-enum IntFieldError {/// Delete error in stream [null]
+enum IntFieldErrors {/// Delete error in stream [null]
   /// Empty value
   EMPTY,
   /// Badly formatted.

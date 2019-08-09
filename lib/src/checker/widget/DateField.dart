@@ -2,10 +2,9 @@ import 'dart:async';
 
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/translator/TranslatorController.dart';
-import 'package:flutter/cupertino.dart' as cp;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart' as dtf;
 import 'package:intl/intl.dart';
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 
@@ -14,10 +13,10 @@ class DateTimeField extends StatelessWidget {
   final DateTimeCheckerRule checker;
   final Translator translator;
   final InputDecoration decoration;
+  final DateTimePickerMode pickerMode;
   final DateFormat format;
-  final InputType inputType;
   final bool editable;
-  final IconData resetIcon;
+  final Icon resetIcon;
   final DateTime initialDate, firstDate, lastDate;
   final TimeOfDay initialTime;
 
@@ -25,7 +24,8 @@ class DateTimeField extends StatelessWidget {
     @required this.checker, this.translator: dateTimeTranslator,
     this.decoration: const InputDecoration(),
 
-    @required this.format, this.inputType, this.editable: false, this.resetIcon,
+    this.pickerMode: DateTimePickerMode.datetime, @required this.format,
+    this.editable: true, this.resetIcon,
     this.initialDate, this.firstDate, this.lastDate, this.initialTime,
   }) : assert(translator != null), super(key: key,);
 
@@ -37,7 +37,7 @@ class DateTimeField extends StatelessWidget {
   }) : this(
     checker: checker, translator: translator,
     decoration: decoration,
-    inputType: InputType.date, format: DateFormat('MM-dd'),
+    pickerMode: DateTimePickerMode.datetime, format: DateFormat('MM-dd'),
   );
 
   DateTimeField.time({Key key,
@@ -48,18 +48,18 @@ class DateTimeField extends StatelessWidget {
   }) : this(
     checker: checker, translator: translator,
     decoration: decoration,
-    inputType: InputType.time, format: DateFormat('HH:mm'),
+    pickerMode: DateTimePickerMode.time, format: DateFormat('HH:mm'),
   );
 
-  Future<T> _securePicker<T>(BuildContext context, AsyncValueGetter<T> asyncFunction) {
-    if (checker.lock.locked)
-      return null;
-    return checker.lock.synchronized(() async {
-      final res = await asyncFunction();
-      checker.nextFinger(context);
-      return res;
-    });
-  }
+//  Future<T> _securePicker<T>(BuildContext context, AsyncValueGetter<T> asyncFunction) {
+//    if (checker.lock.locked)
+//      return null;
+//    return checker.lock.synchronized(() async {
+//      final res = await asyncFunction();
+//      checker.nextFinger(context);
+//      return res;
+//    });
+//  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,70 +69,49 @@ class DateTimeField extends StatelessWidget {
 
         final data = snap.data;
 
-        return DateTimePickerFormField(
+        return dtf.DateTimeField(
           format: format,
-          inputType: inputType,
-          editable: editable,
-          resetIcon: resetIcon,
-
-          initialValue: data.value,
           focusNode: checker.focusNode,
-          decoration: decoration.copyWith(
-            errorText: translator(snap.data.error)?.text,
-          ),
-
-          obscureText: data.obscureText,
-
-          onFieldSubmitted: (_) => _securePicker(context, () async {}),
-          onSaved: checker.onSaved,
-          validator: (value) => translator(checker.validate(value))?.text,
-
-          datePicker: (_context) => _securePicker(_context, () {
+//          enabled: editable,
+//          decoration: decoration.copyWith(
+//            errorText: translator(snap.data.error)?.text,
+//          ),
+//          obscureText: data.obscureText,
+//          onFieldSubmitted: (_) => checker.nextFinger(context),
+//
+//          readOnly: true,
+//
+//          resetIcon: resetIcon,
+//          enableInteractiveSelection: true,
+//
+//          initialValue: data.value,
+//
+//          onSaved: checker.onSaved,
+//          validator: (value) => translator(checker.validate(value))?.text,
+          readOnly: true,
+          onShowPicker: (_context, currentValue) async {
             Completer<DateTime> completer = Completer();
-            DatePicker.showDatePicker(context,
+
+            DatePicker.showDatePicker(_context,
               minDateTime: checker.firstDate,
               maxDateTime: checker.lastDate,
-              initialDateTime: checker.initialDate,
-              pickerMode: DateTimePickerMode.date,
-              onCancel: () => completer.complete(),
-              onConfirm: (datetime, list) => completer.complete(datetime),
+              initialDateTime: currentValue,
+              pickerMode: pickerMode,
+              onCancel: () {
+                completer.complete(null);
+              },
+              onClose: () {
+                if (!completer.isCompleted)
+                  completer.complete();
+              },
+              onConfirm: (datetime, list) {
+                completer.complete(datetime);
+              },
             );
-            return completer.future.whenComplete(() => Future.delayed(Duration(milliseconds: 300))
-                .whenComplete(() => checker.nextFinger(_context)));
-            /*return showDatePicker(
-              context: _context,
-              firstDate: checker.firstDate,
-              lastDate: checker.lastDate,
-              initialDate: initialDate ?? DateTime.now(),
-              initialDatePickerMode: DatePickerMode.day,
-              //locale: widget.locale,
-              //selectableDayPredicate: widget.selectableDayPredicate,
-              //textDirection: widget.textDirection,
-              builder: (_, child) => CupertinoDatePicker(),
-            );*/
-          }),
-          timePicker: (_context) => _securePicker(_context, () {
-            Completer<DateTime> completer = Completer();
-            DatePicker.showDatePicker(context,
-              minDateTime: checker.firstDate,
-              maxDateTime: checker.lastDate,
-              initialDateTime: checker.initialDate,
-              pickerMode: DateTimePickerMode.time,
-              onCancel: () => completer.complete(),
-              onConfirm: (datetime, list) => completer.complete(datetime),
-            );
-            return completer.future.then((datetime) {
-              Future.delayed(Duration(milliseconds: 300))
-                  .whenComplete(() => checker.nextFinger(_context));
-              return TimeOfDay.fromDateTime(datetime);
-            });
-            /*return showTimePicker(
-              context: _context,
-              //builder: ,
-              initialTime: initialTime ?? TimeOfDay.now(),
-            );*/
-          }),
 
+            return await Future.delayed(Duration(milliseconds: 300)).then((_) => completer.future);//.whenComplete(() => Future.delayed(Duration(milliseconds: 300))
+               // .whenComplete(() => checker.nextFinger(_context)));
+          },
         );
       },
     );
@@ -148,7 +127,7 @@ const DATE_DECORATION = const InputDecoration(
 
 Translations dateTimeTranslator(Object error) {
   switch (error) {
-    case DateTimeFieldError.EMPTY:
+    case DateTimeFieldErrors.EMPTY:
       return const TranslationsConst(
         it: "Campo Vuoto",
         en: "Empty Field"

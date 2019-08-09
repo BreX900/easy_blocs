@@ -25,7 +25,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  final translationBloc = RepositoryBloc.of();
+  final translationBloc = RepositoryBlocBase.of();
 
   @override
   Widget build(BuildContext context) {

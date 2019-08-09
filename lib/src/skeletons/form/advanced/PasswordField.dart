@@ -1,9 +1,6 @@
-import 'package:easy_blocs/src/skeletons/form/text/TextFieldBone.dart';
-import 'package:easy_blocs/src/skeletons/form/text/TextFieldSheet.dart';
-import 'package:easy_blocs/src/skeletons/form/text/TextFieldShell.dart';
-import 'package:easy_blocs/src/skeletons/form/text/TextFieldSkeleton.dart';
-import 'package:easy_blocs/src/skeletons/form/text/TextFieldValidator.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
+import 'package:easy_blocs/src/skeletons/form/base/TextField.dart';
 import 'package:flutter/material.dart';
 
 
@@ -13,64 +10,61 @@ abstract class PasswordFieldBone extends TextFieldBone {}
 class PasswordFieldSkeleton extends TextFieldSkeleton implements PasswordFieldBone {
 
   PasswordFieldSkeleton({
-    TextFieldSheet initialValue: const TextFieldSheet(),
-    List<FormFieldValidator<String>> validators,
+    String value,
+    List<FieldValidator<String>> validators,
   }) : super(
-    initialValue: initialValue,
+    value: value,
     validators: validators??PasswordFieldValidator.base,
   );
 }
 
 
-class PasswordFieldShell<B extends PasswordFieldBone> extends StatelessWidget {
-  final TwoBuilder<TextFieldSheet, PasswordFieldBone, InputDecoration> dimmer;
-  final TwoBuilder<TextFieldSheet, PasswordFieldBone, InputDecoration> clearer;
+class PasswordFieldShell extends TextFieldShell {
 
-  const PasswordFieldShell({Key key,
-    this.dimmer: _dimmer, this.clearer: _clearer,
-  }) : super(key: key);
+  PasswordFieldShell({Key key,
+    @required PasswordFieldBone fieldBone,
+    MapFocusBone mapFocusBone, FocusNode focusNode,
+    InputDecoration decoration,
+  }) : super(key: key,
+    bone: fieldBone,
+    mapFocusBone: mapFocusBone, focusNode: focusNode,
+    decoration: decoration??_decorator(fieldBone),
+  );
 
-  static InputDecoration _dimmer(TextFieldSheet sheet, PasswordFieldBone bone) {
-    return InputDecoration(
+  static InputDecoration _decorator(PasswordFieldBone fieldBone) {
+    void setObscureText(bool isObscureText) {
+      fieldBone.shield = fieldBone.shield.copyWith(obscureText: isObscureText);
+    }
+
+    return fieldBone.shield.obscureText ? InputDecoration(
       prefix: IconButton(
-        onPressed: () => bone.inObscureText(false),
+        onPressed: () => setObscureText(false),
         icon: const Icon(Icons.lock_outline),
       ),
-    );
-  }
-
-  static InputDecoration _clearer(TextFieldSheet sheet, PasswordFieldBone bone) {
-    return InputDecoration(
+    ) : InputDecoration(
       prefix: IconButton(
-        onPressed: () => bone.inObscureText(true),
+        onPressed: () => setObscureText(true),
         icon: const Icon(Icons.lock_outline),
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    return TextFieldShell<B>(
-      decorator: (sheet, bone) {
-        return sheet.obscureText ? dimmer(sheet, bone) : clearer(sheet, bone);
-      },
     );
   }
 }
 
 
 abstract class PasswordFieldValidator {
-  static List<FormFieldValidator<String>> get base => [
-    TextFieldValidator.notEmpty,
+  static List<FieldValidator<String>> get base => [
+    TextFieldValidator.undefined,
     password,
   ];
 
-  static String password(String value) {
+  static FieldError password(String value) {
     if (value.length < 8)
-      return "Campo troppo corto";
+      return PasswordFieldError.short;
     return null;
   }
 }
 
-
+class PasswordFieldError {
+  static const undefined = FieldError.undefined;
+  static const short = FieldError("SHORT");
+}

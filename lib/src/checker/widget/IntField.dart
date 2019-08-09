@@ -19,13 +19,13 @@ class IntField extends CheckerField<int> {
 
 Translations translatorIntField(Object error) {
   switch (error) {
-    case IntFieldError.EMPTY: {
+    case IntFieldErrors.EMPTY: {
       return const TranslationsConst(
         it: "Campo vuoto.",
         en: "Empty field.",
       );
     }
-    case IntFieldError.INVALID: {
+    case IntFieldErrors.INVALID: {
       return const TranslationsConst(
           it: "Formato non appropriato.",
           en: "Bad Format."

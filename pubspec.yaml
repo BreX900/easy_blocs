@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  rational: any
+
   synchronized: any
   rxdart: any
   dash: any
@@ -20,6 +22,8 @@ dependencies:
   flutter_cache_manager: any
   path_provider: any
 
+  image_picker: any
+  dotted_border: any
   datetime_picker_formfield: any
   flutter_cupertino_date_picker: any
 

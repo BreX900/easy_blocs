@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 
 
-mixin MixinStateSubscription<T extends StatefulWidget> on State<T> {
+mixin StateWriterMixin<T extends StatefulWidget> on State<T> {
   final CompositeSubscription _compositeSubscription = CompositeSubscription();
 
   @override @mustCallSuper
@@ -16,6 +16,29 @@ mixin MixinStateSubscription<T extends StatefulWidget> on State<T> {
 
   void addSubscription(StreamSubscription subscription) => _compositeSubscription.add(subscription);
   void removeSubscription(StreamSubscription subscription) => _compositeSubscription.remove(subscription);
+}
+
+mixin StateSubscriptionMixin<T extends StatefulWidget> on State<T> {
+  StreamSubscription _subscription;
+
+  set secureSubscription(StreamSubscription subscription) {
+    cancelSubscription();
+    _subscription = subscription;
+  }
+
+  set subscription(StreamSubscription subscription) {
+    _subscription = subscription;
+  }
+
+  void cancelSubscription() {
+    _subscription?.cancel();
+  }
+
+  @override
+  void dispose() {
+    cancelSubscription();
+    super.dispose();
+  }
 }
 
 mixin MixinSkeletonSubscription on Skeleton {
@@ -30,3 +53,5 @@ mixin MixinSkeletonSubscription on Skeleton {
   void addSubscription(StreamSubscription subscription) => _compositeSubscription.add(subscription);
   void removeSubscription(StreamSubscription subscription) => _compositeSubscription.remove(subscription);
 }
+
+

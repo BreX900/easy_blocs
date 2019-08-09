@@ -11,7 +11,7 @@ class VersionManager {
   VersionManager(String key, {
     this.version: "beta-0",
     SharedPreferences sharedPreferences,
-  }) : this.key = '$key#Version', this.pf = sharedPreferences??RepositoryBloc.of().sharedPreferences,
+  }) : this.key = '$key#Version', this.pf = sharedPreferences??RepositoryBlocBase.of().sharedPreferences,
       assert(key != null), assert(version != null);
 
   bool get isCorrectVersion => pf.getString(key) == version;

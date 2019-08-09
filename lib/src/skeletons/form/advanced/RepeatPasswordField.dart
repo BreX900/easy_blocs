@@ -1,6 +1,6 @@
 import 'package:easy_blocs/src/skeletons/form/advanced/PasswordField.dart';
-import 'package:easy_blocs/src/skeletons/form/text/TextFieldSheet.dart';
-import 'package:flutter/widgets.dart';
+import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
+import 'package:easy_blocs/src/skeletons/form/base/TextField.dart';
 
 
 abstract class RepeatPasswordFieldBone extends PasswordFieldBone {}
@@ -11,35 +11,36 @@ class RepeatPasswordFieldSkeleton
     implements RepeatPasswordFieldBone {
 
   RepeatPasswordFieldSkeleton({
-    TextFieldSheet initialValue: const TextFieldSheet(),
-    List<FormFieldValidator<String>> validators,
+    String value,
+    List<FieldValidator<String>> validators,
   }) : super(
-    initialValue: initialValue,
+    value: value,
     validators: validators??RepeatPasswordFieldValidator.base,
   );
 }
 
-class RepeatPasswordFieldShell<B extends RepeatPasswordFieldBone> extends PasswordFieldShell<B> {
-}
+class RepeatPasswordFieldShell extends PasswordFieldShell {}
 
 
 
 class RepeatPasswordFieldValidator {
   /// Add method password to PasswordField and method repeatPassword to RepeatPasswordField
-  static List<FormFieldValidator<String>> get base {
-    return PasswordFieldValidator.base;
-  }
+  static List<FieldValidator<String>> get base => PasswordFieldValidator.base;
 
   String _password;
 
-  String password(String value) {
+  FieldError password(String value) {
     _password = value;
     return null;
   }
 
-  String repeatPassword(String value) {
+  FieldError repeatPassword(String value) {
     if (_password != value)
-      return "La password non corrisponde";
+      return RepeatPasswordFieldError.notSame;
     return null;
   }
+}
+
+class RepeatPasswordFieldError {
+  static const notSame = FieldError("NOT_SAME");
 }

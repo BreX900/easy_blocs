@@ -7,7 +7,7 @@ import 'package:flutter/painting.dart';
 
 
 class TranslationDrawer extends StatelessWidget {
-  final translationBloc = RepositoryBloc.of();
+  final translationBloc = RepositoryBlocBase.of();
   final List<Locale> locales;
   final String assetFolder;
   final double size;
@@ -54,7 +54,7 @@ class TranslationDrawer extends StatelessWidget {
 
 
 class TranslationButton extends StatelessWidget {
-  final translatorBloc = RepositoryBloc.of();
+  final translatorBloc = RepositoryBlocBase.of();
   final String assetFolder;
   final double size;
 

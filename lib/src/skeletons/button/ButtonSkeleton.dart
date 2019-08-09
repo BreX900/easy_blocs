@@ -1,29 +1,46 @@
+import 'dart:async';
+
 import 'package:easy_blocs/src/skeletons/Skeleton.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'ButtonBone.dart';
+
 
 
 class ButtonSkeleton extends Skeleton implements ButtonBone {
-  VoidCallback onSubmit;
+  AsyncValueGetter<bool> onSubmit;
 
   ButtonSkeleton({
     bool isEnable: true,
-  }) : controller = BehaviorSubject.seeded(isEnable);
+  }) : this._buttonController = BehaviorSubject.seeded(isEnable);
 
-  final BehaviorSubject<bool> controller;
-  Stream<bool> get outButtonSheet => controller.stream;
+  final BehaviorSubject<bool> _buttonController;
+  Stream<bool> get outButtonSheet => _buttonController;
 
-  Future<void> onPressed() async {
-    controller.add(null);
-    if (onSubmit != null)
-      onSubmit();
-  }
 
   @override
   void dispose() {
+    _buttonController.close();
     super.dispose();
-    controller.close();
   }
+
+  @override
+  Future<void> onPressed(VoidCallback starter) async {
+    assert(onSubmit != null);
+    _buttonController.add(null);
+    try {
+      starter();
+      onSubmit().then(_buttonController.add);
+    } catch(exc) {
+      _buttonController.add(true);
+    }
+  }
+
+  void add(bool isEnable) => _buttonController.add(isEnable);
+}
+
+
+abstract class ButtonBone extends Bone {
+  Stream<bool> get outButtonSheet;
+  Future<void> onPressed(VoidCallback starter);
 }

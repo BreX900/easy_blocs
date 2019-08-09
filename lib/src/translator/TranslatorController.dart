@@ -12,8 +12,14 @@ typedef Translations Translator(Object value);
 const String _defaultTranslation = 'en';
 
 String translator(Translations translations) {
-  return translations[RepositoryBloc.of().locale.languageCode]
-      ?? (translations[_defaultTranslation] ?? translations.values.first);
+  return translations[RepositoryBlocBase.of().locale.languageCode]
+      ?? (translations[_defaultTranslation]
+          ?? () {
+            final values =  translations.values;
+            if (values.length == 0)
+              return "";
+            return values.first;
+          }());
 }
 
 
@@ -22,7 +28,7 @@ enum LoadingLanguage {
 }
 
 
-abstract class TranslatorManager {
+abstract class TranslatorBone implements Bone {
   Observable<Locale> get outLocale;
   Locale get locale;
   NumberFormat get currencyFormat;
@@ -34,13 +40,14 @@ abstract class TranslatorManager {
 
 
 /// In ThemeData add 'platform: TargetPlatform.android,'
-class TranslatorController implements TranslatorManager{
+class TranslatorSkeleton extends Skeleton implements TranslatorBone {
   static const _KEY = "UserTranslation";
   LoadingLanguage _loading = LoadingLanguage.FAILED_OR_NOT_START;
 
   Locale get locale => _localeControl.value;
 
-  TranslatorController({Locale locale: const Locale('en')}) : this._localeControl = BehaviorSubject.seeded(locale) {
+  TranslatorSkeleton({Locale locale: const Locale('en')}) : this._localeControl = BehaviorSubject.seeded(locale) {
+    _currencyFormat = NumberFormat.currency(locale: locale.toString(), symbol: '€');
     _getStore();
   }
 
@@ -83,8 +90,8 @@ class TranslatorController implements TranslatorManager{
 }
 
 
-mixin MixinTranslatorManager implements TranslatorManager {
-  TranslatorManager get translatorManager;
+mixin MixinTranslatorBone implements TranslatorBone {
+  TranslatorBone get translatorManager;
   Observable<Locale> get outLocale => translatorManager.outLocale;
   Locale get locale => translatorManager.locale;
   NumberFormat get currencyFormat => translatorManager.currencyFormat;

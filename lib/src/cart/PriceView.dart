@@ -1,10 +1,11 @@
 import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:rational/rational.dart';
 
 
 class PriceView extends Text {
-  PriceView(int price, {
+  PriceView(Rational price, {
     Key key,
    TextStyle style,
     StrutStyle strutStyle,
@@ -33,14 +34,14 @@ class PriceView extends Text {
 
 class PriceSpan extends TextSpan {
 
-  PriceSpan(int price, {
+  PriceSpan(Rational price, {
     TextStyle style,
     List<TextSpan> children,
     GestureRecognizer recognizer,
     String semanticsLabel,
   }) : super(
     style: style,
-    text: '${RepositoryBloc.of().currencyFormat.format(price/100)}',
+    text: '${RepositoryBlocBase.of().currencyFormat.format(price.toDouble())}',
     children: children,
     recognizer: recognizer,
     semanticsLabel: semanticsLabel,

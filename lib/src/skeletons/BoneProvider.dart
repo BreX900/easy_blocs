@@ -1,3 +1,4 @@
+
 import 'package:easy_blocs/src/skeletons/Skeleton.dart';
 import 'package:flutter/widgets.dart';
 
@@ -16,19 +17,23 @@ class BoneProvider<BoneType extends Bone> extends InheritedWidget {
 
   BoneProvider.tree(this.bone) : super();
 
-  static BoneType of<BoneType extends Bone>(BuildContext context) {
+  static BoneType of<BoneType extends Bone>(BuildContext context, [allowNull = true]) {
 
     Type typeOf<T>() => T;
 
-    return (
+    final bone = (
         context.ancestorInheritedElementForWidgetOfExactType(
             typeOf<BoneProvider<BoneType>>()
         )?.widget as BoneProvider<BoneType>)?.bone;
+
+    assert(allowNull || bone != null, "The $BoneType must not null");
+
+    return bone;
   }
 
   @override
   bool updateShouldNotify(BoneProvider old) {
-    return false;
+    return bone != old.bone;
   }
 
   BoneProvider<BoneType> copyWith(Widget child) {
@@ -41,36 +46,3 @@ class BoneProvider<BoneType extends Bone> extends InheritedWidget {
 }
 
 
-/*typedef C Creator<C>(BuildContext context);
-
-typedef C CreatorByValue<C, V>(BuildContext context, V value);
-
-
-class ManagerProviderBuilder<M extends Manager> extends StatefulWidget {
-  final Creator<M> builder;
-
-  final CreatorByValue<Widget, M> creator;
-
-  const ManagerProviderBuilder({Key key, this.builder, this.creator}) : super(key: key);
-
-  @override
-  _ManagerProviderBuilderState<M> createState() => _ManagerProviderBuilderState();
-}
-
-class _ManagerProviderBuilderState<M extends Manager> extends State<ManagerProviderBuilder<M>> {
-  M manager;
-
-  @override
-  void initState() {
-    super.initState();
-    manager = widget.builder(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ManagerProvider(
-      manager: manager,
-      child: widget.creator(context, manager),
-    );
-  }
-}*/

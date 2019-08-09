@@ -5,6 +5,6 @@ import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
 part 'Provider.g.dart';
 
 
-@BlocProvider.register(RepositoryBloc)
+@BlocProvider.register(RepositoryBlocBase)
 
 abstract class Provider {}

@@ -10,35 +10,36 @@ import 'package:json_annotation/json_annotation.dart';
 /// Nella classe che contiene questi oggetti deve essere presente @JsonSerializable()
 /// con parametri (anyMap: true, explicitToJson: true)
 @JsonSerializable(createFactory: false, createToJson: false,)
-class TranslationsMap extends MapBase<String, String> implements Translations {
-  final Map<String, String> internalMap;
+class TranslationsMap extends Translations with MapMixin<String, String> {
+  final Map<String, String> _translations;
 
-  TranslationsMap({String it, String en}) : this.internalMap = Map(), super() {
-    if (it != null && it.isNotEmpty) internalMap[Translations.IT] = it;
-    if (en != null && en.isNotEmpty) internalMap[Translations.EN] = en;
+  TranslationsMap({String it, String en}) : this._translations = Map(), super() {
+    if (it != null && it.isNotEmpty) _translations[Translations.IT] = it;
+    if (en != null && en.isNotEmpty) _translations[Translations.EN] = en;
   }
 
-  String get text => translator(this);
+  TranslationsMap.map(this._translations);
+
+  @override
+  String operator [](Object key) => _translations[key];
+
+  @override
+  void operator []=(String key, String value) => _translations[key] = value;
+
+  @override
+  void clear() => _translations.clear();
+
+  @override
+  Iterable<String> get keys => _translations.keys;
+
+  @override
+  String remove(Object key) => _translations.remove(key);
+
   @override
   String toString() => this.text;
 
-  @override
-  String operator [](Object key) => internalMap[key];
-
-  @override
-  void operator []=(String key, String value) => internalMap[key] = value;
-
-  @override
-  void clear() => internalMap.clear();
-
-  @override
-  Iterable<String> get keys => internalMap.keys;
-
-  @override
-  String remove(Object key) => internalMap.remove(key);
-
-  TranslationsMap.fromJson(Map<String, String> map) : this.internalMap = map, super();
-  Map<String, dynamic> toJson() => internalMap;
+  TranslationsMap.fromJson(Map<String, String> map) : this._translations = map, super();
+  Map<String, dynamic> toJson() => _translations;
 }
 
 
@@ -48,8 +49,13 @@ abstract class Translations {
 
   const Translations();
 
-  String get text;
+  String get text => translator(this);
+  @override
+  String toString() => this.text;
 
+  bool get isEmpty;
+
+  bool get isUndefined => isEmpty || !values.any((value) => value != null && value.trim().isNotEmpty);
 
   String operator [](String key);
   Iterable<String> get values;
@@ -60,14 +66,10 @@ abstract class Translations {
 
 
 @JsonSerializable(createFactory: false, createToJson: false,)
-class TranslationsConst extends Translations {
+class TranslationsConst extends Translations  {
   final String en, it;
 
-  const TranslationsConst({this.it, this.en}) : super();
-
-  String get text => translator(this);
-  @override
-  String toString() => this.text;
+  const TranslationsConst({this.it, this.en});
 
   @override
   String operator [](String key) {
@@ -80,6 +82,8 @@ class TranslationsConst extends Translations {
 
   @override
   Iterable<String> get values => [en, it]..removeWhere((value) => value == null);
+  @override
+  bool get isEmpty => values.length < 1;
 
   static TranslationsMap fromJson(Map<String, String> map) => TranslationsMap.fromJson(map);
   Map<String, dynamic> toJson() => {

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart';
+import 'package:rational/rational.dart';
 
 
 part 'Cart.g.dart';
@@ -15,10 +16,10 @@ class Cart {
     return products.firstWhere((item) => item.id == id, orElse: () => null);
   }
 
-  int getPrice(String id, int price) => (getProduct(id)?.countProducts??0)*price;
+  Rational getPrice(String id, Rational price) => (Rational.fromInt(getProduct(id)?.countProducts??0))*price;
 
-  int getTotalPrice(List<ProductCartPriceRule> products) {
-    return products.fold(0, (price, product) => price + getPrice(product.id, product.price));
+  Rational getTotalPrice(List<ProductCartPriceRule> products) {
+    return products.fold(Rational.zero, (price, product) => price + getPrice(product.id, product.price));
   }
 
   int get countProducts => products.fold(0, (value, product) => value+product.countProducts);
@@ -111,5 +112,5 @@ class ProductCart {
 
 abstract class ProductCartPriceRule {
   String get id;
-  int get price;
+  Rational get price;
 }

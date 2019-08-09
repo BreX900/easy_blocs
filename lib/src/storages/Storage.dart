@@ -7,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 
 abstract class Storage with MixinVersionManager {
   final VersionManager versionManager;
+  String _cache;
+  bool _isInCache = false;
 
   Storage({
     @required this.versionManager,
@@ -15,9 +17,13 @@ abstract class Storage with MixinVersionManager {
   /// Not ovveride this method
   @protected
   Future<String> getString({String defaultValue}) async {
-    return versionManager.isCorrectVersion
-        ? await onGetString(defaultValue: defaultValue)
-        : defaultValue;
+    if (!_isInCache) {
+      _cache = versionManager.isCorrectVersion
+          ? await onGetString(defaultValue: defaultValue)
+          : defaultValue;
+      _isInCache = true;
+    }
+    return _cache;
   }
 
   Future<String> onGetString({String defaultValue});
@@ -25,8 +31,11 @@ abstract class Storage with MixinVersionManager {
   /// Not ovveride this method
   @protected
   Future<void> setString({@required String value}) async {
-    await onSetString(value: value);
-    await updateVersion();
+    if (!_isInCache || (_isInCache && _cache != value)) {
+      _isInCache = false;
+      await onSetString(value: value);
+      await updateVersion();
+    }
   }
   Future<void> onSetString({@required String value});
 
@@ -50,5 +59,17 @@ abstract class Storage with MixinVersionManager {
   Future<void> setObject({@required JsonRule object}) async {
     await updateVersion();
     await setMap(map: object.toJson());
+  }
+
+  Future<E> getEnum<E>({@required Iterable<E> enumValues, E defaultValue}) async {
+    final raw = await getString();
+    return raw == null ? defaultValue : enumValues.firstWhere((value) => value.toString() == raw,
+      orElse: () => defaultValue);
+  }
+
+  @mustCallSuper
+  Future<void> setEnum({@required Object enumValue}) async {
+    await updateVersion();
+    await setString(value: enumValue?.toString());
   }
 }

@@ -22,7 +22,7 @@ class DateTimeChecker extends Checker<DateTime, DateTime> implements DateTimeChe
   @override
   Object validate(DateTime val) {
     if (val == null)
-      return DateTimeFieldError.EMPTY;
+      return DateTimeFieldErrors.EMPTY;
     return null;
   }
 
@@ -59,7 +59,7 @@ abstract class DateTimeCheckerRule extends FingerNode {
 }
 
 
-enum DateTimeFieldError {
+enum DateTimeFieldErrors {
   EMPTY,
   INVALID,
 }

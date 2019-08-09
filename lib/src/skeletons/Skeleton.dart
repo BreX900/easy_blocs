@@ -11,3 +11,12 @@ class Skeleton implements Bone {
 abstract class Bone {
 
 }
+
+
+mixin SkeletonWriter on Skeleton {
+
+}
+
+class SkeletonEvent<E> extends Skeleton {
+
+}

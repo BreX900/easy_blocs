@@ -12,16 +12,14 @@ class PreferenceStorage extends Storage {
 
   PreferenceStorage({
     @required String key,
-    @required SharedPreferences preferences,
+    SharedPreferences preferences,
     @required VersionManager versionManager,
-  }) : this._key = key, this._pf = preferences??RepositoryBloc.of().sharedPreferences,
+  }) : this._key = key, this._pf = preferences??RepositoryBlocBase.of().sharedPreferences,
         assert(key != null),
         super(versionManager: versionManager);
 
-  PreferenceStorage.manager({
-    @required VersionManager versionManager,
-  }) : this(
-    key: versionManager.key,
+  PreferenceStorage.manager(VersionManager versionManager) : this(
+    key: '${versionManager.key}#DATA',
     preferences: versionManager.pf,
     versionManager: versionManager,
   );
@@ -29,6 +27,7 @@ class PreferenceStorage extends Storage {
   @override @protected
   Future<String> onGetString({String defaultValue}) async {
     assert(_pf != null, "Use [VersionHandler.init] method");
+    print("P ${_pf.getString(_key)??defaultValue}");
     return _pf.getString(_key)??defaultValue;
   }
 
