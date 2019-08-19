@@ -1,10 +1,11 @@
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
 import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-typedef Widget _Builder(String screen);
+typedef Widget _Builder(BuildContext context, RepositoryData data);
 
 typedef  Future<String> _Worker(BuildContext context, SharedPreferences sharedPreferences);
 
@@ -37,7 +38,22 @@ class RepositoryBuilder<T> extends StatefulWidget {
 
 class _RepositoryBuilderState<T> extends State<RepositoryBuilder<T>> {
 
-  String _screen;
+
+  ObservableSubscriber<RepositoryData> _dataSubscriber;
+
+  RepositoryData _data;
+
+  @override
+  void initState() {
+    super.initState();
+    _dataSubscriber = ObservableSubscriber(_dataListener);
+  }
+
+  @override
+  void dispose() {
+    _dataSubscriber.unsubscribe();
+    super.dispose();
+  }
 
   Future<void> _init(BuildContext context) async {
     final sharedPreferences = await SharedPreferences.getInstance();
@@ -46,14 +62,27 @@ class _RepositoryBuilderState<T> extends State<RepositoryBuilder<T>> {
     assert(repositoryBloc != null);
     BlocProvider.init<RepositoryBlocBase>(repositoryBloc);
 
-    final screen = await widget.worker(context, sharedPreferences);
-    setState(() => _screen = screen);
+    _data = RepositoryData(screen: await widget.worker(context, sharedPreferences));
+
+    final outLocale = repositoryBloc.outLocale;
+    final outSp = repositoryBloc.outSp;
+
+    _dataSubscriber.subscribe(Observable.combineLatest2(repositoryBloc.outLocale, repositoryBloc.outSp, (lc, sp) {
+      return _data.copyWith(locale: lc, sp: sp);
+    }).shareValueSeeded(_data.copyWith(
+      locale: outLocale is ValueObservable<Locale> ? outLocale.value : Locale('en'),
+      sp: outSp is ValueObservable<Sp> ? outSp.value : Sp(),
+    )));
+  }
+
+  void _dataListener(ObservableState<RepositoryData> update) {
+    setState(() => _data = update.data);
   }
 
   @override
   Widget build(BuildContext context) {
 
-    if (_screen == null) {
+    if (_data == null) {
       _init(context);
       return widget.splashWidget??Container(
         color: Colors.grey[300],
@@ -61,35 +90,27 @@ class _RepositoryBuilderState<T> extends State<RepositoryBuilder<T>> {
         child: const CircularProgressIndicator(),
       );
     }
-    return widget.builder(_screen);
-//    return StreamBuilder<RepositoryData<T>>(
-//      initialData: _sheet,
-//      stream: Observable.combineLatest2(
-//          _sheet.repositoryBloc.outLocale, _sheet.repositoryBloc.outSp, (locale, sp) {
-//        return _sheet.copyWith(locale: locale, sp: sp);
-//      }),
-//      builder: (context, snap) {
-//        return;
-//      },
-//    );
+
+    return widget.builder(context, _data);
   }
 }
 
 
-//class RepositoryData<T> {
-//  final RepositoryBlocBase repositoryBloc;
-//  final Locale locale;
-//  final Sp sp;
-//  final T data;
-//
-//  RepositoryData({this.repositoryBloc, this.locale, this.sp, this.data});
-//
-//  RepositoryData<T> copyWith({SharedPreferences sharedPreferences, Locale locale, Sp sp, T data}) {
-//    return RepositoryData<T>(
-//      repositoryBloc: sharedPreferences??this.repositoryBloc,
-//      locale: locale??this.locale,
-//      sp: sp??this.sp,
-//      data: data??this.data,
-//    );
-//  }
-//}
+class RepositoryData {
+  final RepositoryBlocBase repositoryBloc;
+  final Locale locale;
+  final Sp sp;
+  final SharedPreferences sharedPreferences;
+  final String screen;
+
+  RepositoryData({this.repositoryBloc, this.locale, this.sp, this.sharedPreferences, this.screen});
+
+  RepositoryData copyWith({SharedPreferences sharedPreferences, Locale locale, Sp sp, String screen}) {
+    return RepositoryData(
+      repositoryBloc: sharedPreferences??this.repositoryBloc,
+      locale: locale??this.locale,
+      sp: sp??this.sp,
+      screen: screen??this.screen,
+    );
+  }
+}

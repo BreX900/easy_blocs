@@ -36,16 +36,23 @@ class RationalJsonKey extends JsonKey {
 }
 
 
-class Event<V> {
+typedef Future<Res> ReqToRes(Req req);
+
+
+abstract class Req { const Req(); }
+abstract class Res { const Res(); }
+abstract class Event { const Event(); }
+abstract class ReqResEvent implements Req, Res, Event { const ReqResEvent(); }
+class EventValue<V> {
   final List<V> values;
-  Event(this.values);
+  EventValue(this.values);
 }
-class CompletedEvent<V> extends Event<V> {
+class CompletedEvent<V> extends EventValue<V> {
   CompletedEvent([List<V> values]) : super(values);
 }
-class ErrorEvent<V> extends Event<V> {
+class ErrorEvent<V> extends EventValue<V> {
   ErrorEvent([List<V> values]) : super(values);
 }
-class CancelEvent<V> extends Event<V> {
+class CancelEvent<V> extends EventValue<V> {
   CancelEvent([List<V> values]) : super(values);
 }

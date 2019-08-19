@@ -26,19 +26,19 @@ class EmailField extends StringField {
 
 Translations translatorEmailField(Object error) {
   switch (error) {
-    case EmailAuthError.INVALID: {
+    case EmailSignError.INVALID: {
       return const TranslationsConst(
         it: "L'indirizzo email non è in un formato consono.",
         en: "The email address is badly formatted."
       );
     }
-    case EmailAuthError.USER_NOT_FOUND: {
+    case EmailSignError.USER_NOT_FOUND: {
       return const TranslationsConst(
         it: "Non esiste alcun utente corrispondente a questo identificatore. L'utente potrebbe essere stato eliminato.",
         en: "There is no user corresponding to this identifier. The user may have been deleted.",
       );
     }
-    case EmailAuthError.USER_DISABLE: {
+    case EmailSignError.USER_DISABLE: {
       return const TranslationsConst(
         it: "The user account has been disabled by an administrator.",
         en: "L'account utente è stato disabilitato da un amministratore.",

@@ -1,41 +1,41 @@
-import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
-import 'package:rational/rational.dart';
-
-
-
-abstract class PriceFieldBone extends FieldBone<Rational> {}
-
-
-class PriceFieldSkeleton extends FieldSkeleton<Rational> implements PriceFieldBone {
-  PriceFieldSkeleton({
-    Rational value,
-    List<FieldValidator<int>> validators,
-  }) : super(
-    value: value,
-    validators: validators??[PriceFieldValidator.undefined],
-  );
-
-  static String writer(Rational value) {
-    //print(value.toStringAsPrecision(2));
-    return value.toStringAsPrecision(2);
-  }
-  static Rational reader(String value) {
-    return Rational.parse(value);
-  }
-}
-
-
-class PriceFieldValidator {
-  static FieldError undefined(Rational num) {
-    if (num == null)
-      return PriceFieldError.undefined;
-    return null;
-  }
-}
-
-class PriceFieldError {
-  static const undefined = FieldError.undefined;
-}
+//import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
+//import 'package:rational/rational.dart';
+//
+//
+//
+//abstract class PriceFieldBone extends FieldBone<Rational> {}
+//
+//
+//class PriceFieldSkeleton extends FieldSkeleton<Rational> implements PriceFieldBone {
+//  PriceFieldSkeleton({
+//    Rational value,
+//    List<FieldValidator<int>> validators,
+//  }) : super(
+//    tmpValue: value,
+//    validators: validators??[PriceFieldValidator.undefined],
+//  );
+//
+//  static String writer(Rational value) {
+//    //print(value.toStringAsPrecision(2));
+//    return value.toStringAsPrecision(2);
+//  }
+//  static Rational reader(String value) {
+//    return Rational.parse(value);
+//  }
+//}
+//
+//
+//class PriceFieldValidator {
+//  static FieldError undefined(Rational num) {
+//    if (num == null)
+//      return PriceFieldError.undefined;
+//    return null;
+//  }
+//}
+//
+//class PriceFieldError {
+//  static const undefined = FieldError.undefined;
+//}
 
 
 //class PriceFieldShell extends StatefulWidget implements FocusShell {

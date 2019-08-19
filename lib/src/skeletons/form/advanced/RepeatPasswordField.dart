@@ -1,13 +1,15 @@
+import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/PasswordField.dart';
-import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
-import 'package:easy_blocs/src/skeletons/form/base/TextField.dart';
+import 'package:easy_blocs/src/translator/TranslationsModel.dart';
+import 'package:easy_blocs/src/translator/Widgets.dart';
+import 'package:flutter/material.dart';
 
 
 abstract class RepeatPasswordFieldBone extends PasswordFieldBone {}
 
 
-class RepeatPasswordFieldSkeleton
-    extends PasswordFieldSkeleton
+class RepeatPasswordFieldSkeleton extends PasswordFieldSkeleton
     implements RepeatPasswordFieldBone {
 
   RepeatPasswordFieldSkeleton({
@@ -19,7 +21,30 @@ class RepeatPasswordFieldSkeleton
   );
 }
 
-class RepeatPasswordFieldShell extends PasswordFieldShell {}
+class RepeatPasswordFieldShell extends PasswordFieldShell {
+  RepeatPasswordFieldShell({Key key,
+    @required RepeatPasswordFieldBone bone,
+    FocuserBone mapFocusBone, FocusNode focusNode,
+    InputDecoration decoration,
+  }) : super(key: key,
+    bone: bone,
+    mapFocusBone: mapFocusBone, focusNode: focusNode,
+    decoration: decoration??decorator(bone),
+  );
+
+  static InputDecoration decorator(PasswordFieldBone bone, {
+    TranslationsInputDecoration decoration: const TranslationsInputDecoration(),
+    bool prefixIcon: true, hintText: true,
+  }) {
+
+    return PasswordFieldShell.decorator(bone, decoration: decoration.copyWithTranslations(
+      translationsHintText: hintText ? TranslationsConst(
+        en: "Repeat Password",
+        it: "Ripeti la Password",
+      ) : null,
+    ), hintText: false);
+  }
+}
 
 
 
@@ -29,12 +54,12 @@ class RepeatPasswordFieldValidator {
 
   String _password;
 
-  FieldError password(String value) {
+  Future<FieldError> password(String value) async {
     _password = value;
     return null;
   }
 
-  FieldError repeatPassword(String value) {
+  Future<FieldError> repeatPassword(String value) async {
     if (_password != value)
       return RepeatPasswordFieldError.notSame;
     return null;

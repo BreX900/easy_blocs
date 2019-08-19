@@ -13,7 +13,7 @@ class EmailChecker extends StringChecker {
     if (error != null)
       return error;
     if (!(str.contains('@') && str.split('@')[1].contains('.')))
-      return EmailAuthError.INVALID;
+      return EmailSignError.INVALID;
     return null;
   }
 
@@ -23,14 +23,3 @@ class EmailChecker extends StringChecker {
   ];
 }
 
-
-enum EmailAuthError {/// Delete error in stream [null]
-  /// The email address is badly formatted.
-  INVALID, /// [ERROR_INVALID_EMAIL]
-  /// There is no user record corresponding to this identifier. The user may have been deleted.
-  USER_NOT_FOUND, /// [ERROR_USER_NOT_FOUND]
-  /// The user account has been disabled by an administrator.
-  USER_DISABLE, /// [ERROR_USER_DISABLED]
-  /// Current email already use
-  ALREADY_IN_USE, /// [ERROR_EMAIL_ALREADY_IN_USE]
-}

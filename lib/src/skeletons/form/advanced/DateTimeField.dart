@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
-import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
+import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_blocs/src/translator/TranslationsModel.dart';
 import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/material.dart';
@@ -9,22 +9,27 @@ import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart
     show DateTimePickerMode, DatePicker;
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart' show DateTimeField;
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:rxdart/rxdart.dart';
 
 
 class DateTimeFieldSheet {
+  final FieldError error;
   final bool enable, readOnly;
 
   const DateTimeFieldSheet({
+    this.error,
     this.enable: true,
     this.readOnly: true,
   });
 
   DateTimeFieldSheet copyWith({
-    bool enable,
+    FieldError error,
+    bool isEnable,
     bool readOnly,
   }) {
     return DateTimeFieldSheet(
-      enable: enable??this.enable,
+      error: error,
+      enable: isEnable??this.enable,
       readOnly: readOnly??this.readOnly,
     );
   }
@@ -32,94 +37,97 @@ class DateTimeFieldSheet {
 
 
 abstract class DateTimeFieldBone extends FieldBone<DateTime> {
-  DateTimeFieldSheet shield;
+  Stream<DateTime> get outValue;
+  Stream<DateTimeFieldSheet> get outSheet;
 
-  ValueGetter<DateTime> get getMinDateTime;
-  ValueGetter<DateTime> get getMaxDateTime;
+  DateTimePickerMode get pickerMode;
+  DateTimeFieldValidator get validator;
 }
 
 
 class DateTimeFieldSkeleton extends FieldSkeleton<DateTime> implements DateTimeFieldBone {
-  @override
-  ValueGetter<DateTime> getMinDateTime;
-  @override
-  ValueGetter<DateTime> getMaxDateTime;
+  final DateTimePickerMode pickerMode;
+  final DateTimeFieldValidator validator;
 
   DateTimeFieldSkeleton({
     DateTime value,
+    this.pickerMode: DateTimePickerMode.datetime,
+    @required this.validator,
     List<FieldValidator<DateTime>> validators,
-    this.getMinDateTime: _getMinDateTime, this.getMaxDateTime: _getMaxDateTime,
-    bool addDefaultValidators: true,
-  }) : super(
-    value: value, validators: validators??[DateTimeFieldValidator.notEmpty],
+  }) :
+        assert(pickerMode != null),
+        assert(validator != null), super(
+    validators: validators??DateTimeFieldValidator.base,
   ) {
-    if (addDefaultValidators)
-      this.validators.add(DateTimeFieldValidator(
-        getMinDateTime: getMinDateTime, getMaxDateTime: getMaxDateTime,
-      ).defaultValidator);
+    validators.addAll([
+      if (pickerMode == DateTimePickerMode.datetime)
+        ...[validator.defaultValidator, validator.validateDataWithTime, validator.validateTimeWithTime],
+    ]);
   }
 
-  DateTimeFieldSheet _shield;
-  DateTimeFieldSheet get shield => _shield;
-  set shield(DateTimeFieldSheet shield) {
-    if (_shield != shield) {
-      _shield = shield;
-      notifyListeners();
-    }
+  @override
+  void dispose() {
+    _valueController.close();
+    _tmpValueController.close();
+    _sheetController.close();
+    super.dispose();
   }
 
-  static DateTime _getMinDateTime() => null;
-  static DateTime _getMaxDateTime() => null;
+  final BehaviorSubject<DateTime> _valueController = BehaviorSubject();
+  Stream<DateTime> get outValue => _valueController;
+  DateTime get value => _valueController.value;
+  @override
+  void onInValue(DateTime value) => _valueController.add(value);
+
+  final BehaviorSubject<DateTime> _tmpValueController = BehaviorSubject();
+  Stream<DateTime> get outTmpValue => _tmpValueController;
+  @override
+  DateTime get tmpValue => _tmpValueController.value;
+  @override
+  void inTmpValue(DateTime tmpValue) => _tmpValueController.add(tmpValue);
+
+  final BehaviorSubject<DateTimeFieldSheet> _sheetController = BehaviorSubject();
+  Stream<DateTimeFieldSheet> get outSheet => _sheetController;
+  DateTimeFieldSheet get sheet => _sheetController.value;
+  void inSheet(DateTimeFieldSheet sheet) => _sheetController.add(sheet);
+  @override
+  void inError(FieldError error) => inSheet(sheet.copyWith(error: error));
+  @override
+  void inFieldState(FieldState state) => inSheet(sheet.copyWith(isEnable: state == FieldState.active));
+
+  void onSave() => _valueController.add(tmpValue);
 }
 
 
-class DateTimeFieldShell<B extends DateTimeFieldBone> extends StatefulWidget implements FocusShell {
-  final B fieldBone;
+class DateTimeFieldShell<B extends DateTimeFieldBone> extends StatefulWidget implements FieldShell, FocusShell {
+  final B bone;
+  final DateTimeFieldSheet sheet;
   @override
-  final MapFocusBone mapFocusBone;
+  final FocuserBone mapFocusBone;
   @override
   final FocusNode focusNode;
 
   final FieldErrorTranslator nosy;
   final InputDecoration decoration;
 
-  final DateTimePickerMode pickerMode;
   final DateFormat format;
   final Icon resetIcon;
 
   DateTimeFieldShell({Key key,
-    @required this.fieldBone,
+    @required this.bone, @required this.sheet,
     this.mapFocusBone, this.focusNode,
 
     this.nosy: nosey, this.decoration: const InputDecoration(),
 
-    this.pickerMode: DateTimePickerMode.datetime, DateFormat format,
+    DateFormat format,
     this.resetIcon,
-  }) : this.format = format??DateFormat("MM-dd HH:mm"), super(key: key);
-
-  DateTimeFieldShell.date({Key key,
-    @required DateTimeFieldBone fieldBone,
-    MapFocusBone mapFocusBone, FocusNode focusNode,
-
-    InputDecoration decoration,
-  }) : this(
-    fieldBone: fieldBone,
-    mapFocusBone: mapFocusBone, focusNode: focusNode,
-    decoration: decoration,
-    pickerMode: DateTimePickerMode.date, format: DateFormat('aaaa-MM-dd'),
-  );
-
-  DateTimeFieldShell.time({Key key,
-    @required DateTimeFieldBone fieldBone,
-    MapFocusBone mapFocusBone, FocusNode focusNode,
-
-    InputDecoration decoration,
-  }) : this(
-    fieldBone: fieldBone,
-    mapFocusBone: mapFocusBone, focusNode: focusNode,
-    decoration: decoration,
-    pickerMode: DateTimePickerMode.time, format: DateFormat('HH:mm'),
-  );
+  }) :
+        this.format = format??(bone.pickerMode == DateTimePickerMode.datetime
+            ? DateFormat("MM-dd HH:mm")
+            : (bone.pickerMode == DateTimePickerMode.date
+            ? DateFormat('aaaa-MM-dd')
+            : DateFormat('HH:mm'))),
+        assert(bone != null),  assert(sheet != null), super(key: key);
 
   static Translations nosey(FieldError error) {
     switch (error.code) {
@@ -133,23 +141,53 @@ class DateTimeFieldShell<B extends DateTimeFieldBone> extends StatefulWidget imp
 
 
 
-class _DateTimeFieldShellState extends State<DateTimeFieldShell> with FocusShellStateMixin {
+class _DateTimeFieldShellState extends State<DateTimeFieldShell> with FieldStateMixin, FocusShellStateMixin {
+  final TextEditingController _controller = TextEditingController();
 
-  DateTimeFieldBone get bone => widget.fieldBone;
+  StreamSubscription _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initListener();
+  }
+
+  @override
+  void didUpdateWidget(DateTimeFieldShell<DateTimeFieldBone> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.bone != oldWidget.bone) {
+      _subscription.cancel();
+      _initListener();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  void _initListener() {
+    _subscription = widget.bone.outValue.distinct().listen(_valueListener);
+  }
+
+  void _valueListener(DateTime value) {
+    _controller.text = widget.format.format(value);
+  }
 
   @override
   Widget build(BuildContext context) {
 
     return DateTimeField(
-      format: widget.format,
       focusNode: focusNode,
-      enabled: bone.shield.enable,
+
+      controller: _controller,
+      format: widget.format,
+      enabled: widget.sheet.enable,
       readOnly: true,
 
-      initialValue: bone.value,
-
-      validator: (value) => widget.nosy(bone.validator(value))?.text,
-      onSaved: bone.onSaved,
+      onChanged: widget.bone.inTmpValue,
       onFieldSubmitted: (_) => nextFocus(),
 
       onShowPicker: (_context, currentValue) async {
@@ -157,10 +195,10 @@ class _DateTimeFieldShellState extends State<DateTimeFieldShell> with FocusShell
 
         DatePicker.showDatePicker(_context,
           dateFormat: '${widget.format.pattern}',
-          minDateTime: bone.getMinDateTime(),
-          maxDateTime: bone.getMaxDateTime(),
+          minDateTime: widget.bone.validator.getMinDateTime(),
+          maxDateTime: widget.bone.validator.getMaxDateTime(),
           initialDateTime: currentValue,
-          pickerMode: widget.pickerMode,
+          pickerMode: widget.bone.pickerMode,
           onCancel: () {
             completer.complete(null);
           },
@@ -173,18 +211,20 @@ class _DateTimeFieldShellState extends State<DateTimeFieldShell> with FocusShell
           },
         );
 
-        return await completer.future;//await Future.delayed(Duration(milliseconds: 300)).then((_) => completer.future);
+        return await completer.future;
       },
     );
   }
 }
 
 class DateTimeFieldValidator {
-  static const List<FieldValidator<DateTime>> base =  [
-    notEmpty,
-  ];
+  static List<FieldValidator<DateTime>> get base {
+    return [
+      notEmpty,
+    ];
+  }
 
-  static FieldError notEmpty(DateTime value) {
+  static Future<FieldError> notEmpty(DateTime value) async{
     if (value == null)
       return FieldError(DateTimeFieldError.empty);
     return null;
@@ -194,10 +234,10 @@ class DateTimeFieldValidator {
   final ValueGetter<DateTime> getMaxDateTime;
 
   DateTimeFieldValidator({
-    @required this.getMinDateTime, @required this.getMaxDateTime,
+    this.getMinDateTime: _getMinDateTime, this.getMaxDateTime: _getMaxDateTime,
   }) : assert(getMinDateTime != null && getMaxDateTime != null);
 
-  FieldError defaultValidator(DateTime value) {
+  Future<FieldError> defaultValidator(DateTime value) async {
     if (value.isBefore(getMinDateTime()))
       return FieldError(DateTimeFieldError.before, getMinDateTime());
     if (value.isAfter(getMaxDateTime()))
@@ -208,21 +248,24 @@ class DateTimeFieldValidator {
 
   DateTime _tmpData;
 
-  FieldError validateData(DateTime value) {
+  Future<FieldError> validateDataWithTime(DateTime value) async {
     _tmpData = value.add(Duration(
       hours: 59-value.hour, seconds: 59-value.second,
       milliseconds: 999-value.millisecond, microseconds: 999-value.microsecond,
     ));
-    return defaultValidator(value);
+    return await defaultValidator(value);
   }
 
-  FieldError validateTime(DateTime value) {
+  Future<FieldError> validateTimeWithTime(DateTime value) async {
     assert(_tmpData != null, "Before validating the Time valid the Data");
     _tmpData = DateTimeUtility.byDateAndTime(_tmpData, value);
-    final error = defaultValidator(value);
+    final error = await defaultValidator(value);
     _tmpData = null;
     return error;
   }
+
+  static DateTime _getMinDateTime() => null;
+  static DateTime _getMaxDateTime() => null;
 }
 class DateTimeFieldError {
   static const empty = "EMPTY";

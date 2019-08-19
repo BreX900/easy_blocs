@@ -13,7 +13,7 @@ class PasswordChecker extends StringChecker {
     if (error != null)
       return error;
     if (str.length < 8) // TODO: Vedi [PasswordAuthError.INVALID] per completare questo controllo
-      return PasswordAuthError.INVALID;
+      return PasswordSignError.INVALID;
     return null;
   }
 
@@ -23,13 +23,4 @@ class PasswordChecker extends StringChecker {
   ];
 }
 
-
-enum PasswordAuthError {/// Delete error in stream [null]
-  /// Must have at least 8 characters, a number, a symbol, a lowercase letter and a capital letter
-  INVALID,
-  /// Wrong password
-  WRONG,
-  /// It is not the same as the previous password
-  NOT_SAME,
-}
 

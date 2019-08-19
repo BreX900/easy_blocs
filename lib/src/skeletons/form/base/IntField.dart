@@ -1,55 +1,55 @@
-import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
-
-
-abstract class IntFieldBone extends FieldBone<int> {}
-
-
-class IntFieldSkeleton extends FieldSkeleton<int> implements IntFieldBone {
-  IntFieldSkeleton({
-    int value,
-    List<FieldValidator<int>> validators,
-  }) : super(
-    value: value,
-    validators: validators??[IntFieldValidator.undefined],
-  );
-
-  static String writer(int value) => value.toString();
-  static int reader(String value) => int.tryParse(value);
-}
-
-
-class IntFieldValidator {
-  static FieldError undefined(int num) {
-    if (num == null)
-      return IntFieldError.undefined;
-    return null;
-  }
-
-  static FieldValidator<int> max(int max) {
-    assert(max != null);
-    return (int value) {
-      if (value > max)
-        return IntFieldError.min;
-      return null;
-    };
-  }
-
-  static FieldValidator<int> min(int min) {
-    assert(min != null);
-    return (int value) {
-      if (value < min)
-        return IntFieldError.min;
-      return null;
-    };
-  }
-}
-
-class IntFieldError {
-  static const undefined = FieldError.undefined;
-  static const notValid = FieldError("NOT_VALID");
-  static const max = FieldError("MAX");
-  static const min = FieldError("MIN");
-}
+//import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
+//
+//
+//abstract class IntFieldBone extends FieldBone<int> {}
+//
+//
+//class IntFieldSkeleton extends FieldSkeleton<int> implements IntFieldBone {
+//  IntFieldSkeleton({
+//    int value,
+//    List<FieldValidator<int>> validators,
+//  }) : super(
+//    value: value,
+//    validators: validators??[IntFieldValidator.undefined],
+//  );
+//
+//  static String writer(int value) => value.toString();
+//  static int reader(String value) => int.tryParse(value);
+//}
+//
+//
+//class IntFieldValidator {
+//  static FieldError undefined(int num) {
+//    if (num == null)
+//      return IntFieldError.undefined;
+//    return null;
+//  }
+//
+//  static FieldValidator<int> max(int max) {
+//    assert(max != null);
+//    return (int value) {
+//      if (value > max)
+//        return IntFieldError.min;
+//      return null;
+//    };
+//  }
+//
+//  static FieldValidator<int> min(int min) {
+//    assert(min != null);
+//    return (int value) {
+//      if (value < min)
+//        return IntFieldError.min;
+//      return null;
+//    };
+//  }
+//}
+//
+//class IntFieldError {
+//  static const undefined = FieldError.undefined;
+//  static const notValid = FieldError("NOT_VALID");
+//  static const max = FieldError("MAX");
+//  static const min = FieldError("MIN");
+//}
 
 
 //class IntFieldShell extends StatefulWidget implements FocusShell {

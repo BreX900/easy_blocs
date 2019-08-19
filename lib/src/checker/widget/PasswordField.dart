@@ -43,19 +43,19 @@ const PASSWORD_REPEAT_DECORATION = const TranslationsInputDecoration(
 
 Translations translatorPasswordField(Object error) {
   switch (error) {
-    case PasswordAuthError.INVALID: {
+    case PasswordSignError.INVALID: {
       return const TranslationsConst(
           it: "Deve avere almeno 8 caratteri, un numero, un simbolo, una lettera minuscola e una maiuscola.",
           en: "Must have at least 8 characters, a number, a symbol, a lowercase letter and a capital letter."
       );
     }
-    case PasswordAuthError.WRONG: {
+    case PasswordSignError.WRONG: {
       return const TranslationsConst(
         it: "La password non è corretta o l'utente non ha una password.",
         en: "The password is invalid or the user does not have a password.",
       );
     }
-    case PasswordAuthError.NOT_SAME: {
+    case PasswordSignError.NOT_SAME: {
       return const TranslationsConst(
         it: "La password non è uguale alla precedente.",
         en: "The password is not the same as the previous one.",

@@ -1,12 +1,15 @@
+import 'dart:collection';
 import 'dart:io';
 
+import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
-import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
+import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:rxdart/rxdart.dart';
 
 
 class ImageFieldData {
@@ -47,29 +50,63 @@ class ImageFieldData {
 }
 
 
-abstract class ImageFieldBone extends FieldBone<List<ImageFieldData>> {
+abstract class ImageFieldBone extends FieldBone<UnmodifiableListView<ImageFieldData>> {
   int get maxImages;
+  Stream<FieldError> get outError;
+
+  void create(File newImage);
+  void replace(ImageFieldData data, File newImage);
+  void delete(ImageFieldData data);
+  void move(ImageFieldData data, int steps);
 }
 
 
-class ImageFieldSkeleton extends FieldSkeleton<List<ImageFieldData>> implements ImageFieldBone {
+class ImageFieldSkeleton extends FieldSkeleton<UnmodifiableListView<ImageFieldData>> implements ImageFieldBone {
   ImageFieldSkeleton({
-    List<ImageFieldData> value,
+    List<ImageFieldData> seed,
     this.maxImages: 1,
     List<FieldValidator<int>> validators,
   }) : super(
-    value: value,
+    seed: seed??UnmodifiableListView(const []),
     validators: validators??ImageFieldValidator.base,
   );
 
   final int maxImages;
+
+  @override // TODO: Add FieldState
+  void inFieldState(FieldState state) {}
+
+  Future<void> create(File newImage) async {
+    final newTmpValue = tmpValue.toList()..add(ImageFieldData.file(newImage));
+    inTmpValue(UnmodifiableListView(newTmpValue));
+  }
+  Future<void> replace(ImageFieldData data, File newImage) async {
+    final index = tmpValue.indexOf(data);
+    final newTmpValue = tmpValue.toList()..removeAt(index)..insert(index, data.replace(newImage));
+    inTmpValue(UnmodifiableListView(newTmpValue));
+  }
+  Future<void> delete(ImageFieldData data) async {
+    final newTmpValue = tmpValue.toList()..remove(data);
+    final index = newTmpValue.indexOf(data);
+    final newData = data.markDelete();
+    if (newData != null)
+      newTmpValue.insert(index, newData);
+    inTmpValue(UnmodifiableListView(newTmpValue));
+  }
+  Future<void> move(ImageFieldData data, int steps) async {
+    final index = tmpValue.indexOf(data);
+    if (index+steps < 0 || index+steps >= tmpValue.length)
+      return;
+    final newTmpValue = tmpValue.toList()..remove(data)..insert(index+steps, data);
+    inTmpValue(UnmodifiableListView(newTmpValue));
+  }
 }
 
 
-class ImageFieldShell extends StatefulWidget implements FocusShell {
+class ImageFieldShell extends StatefulWidget implements FieldShell, FocusShell {
   final ImageFieldBone bone;
   @override
-  final MapFocusBone mapFocusBone;
+  final FocuserBone mapFocusBone;
   @override
   final FocusNode focusNode;
 
@@ -89,96 +126,71 @@ class ImageFieldShell extends StatefulWidget implements FocusShell {
   _ImageFieldShellState createState() => _ImageFieldShellState();
 }
 
-class _ImageFieldShellState extends State<ImageFieldShell> with FocusShellStateMixin {
-  FormFieldState<List<ImageFieldData>> _state;
-
+class _ImageFieldShellState extends State<ImageFieldShell> with FieldStateMixin, FocusShellStateMixin {
   void _onCreate([ImageFieldData data]) {
     showInputImageDialog(
       context: context,
       outImageFile: (newImage) {
         if (newImage == null)
           return;
-        final _value = _state.value.toList();
         if (data == null) {
-          _state.didChange(_value..add(ImageFieldData.file(newImage)));
+          widget.bone.create(newImage);
         } else {
-          final index = _value.indexOf(data);
-          _state.didChange(_value..remove(data)..insert(index, data.replace(newImage)));
+          widget.bone.replace(data, newImage);
         }
       },
     );
   }
 
-  void _onDelete(ImageFieldData data) {
-    final value = _state.value.toList();
-    final newData = data.markDelete();
-    if (newData != null)
-      value.insert(value.indexOf(data), newData);
-    value.remove(data);
-    _state.didChange(value);
-  }
-
-  void _onMove(int steps, ImageFieldData data) {
-    final value = _state.value.toList();
-    final index = value.indexOf(data);
-    if (index+steps < 0 || index+steps >= value.length)
-      return;
-    _state.didChange(value..remove(data)..insert(index+steps, data));
-  }
-
   @override
   Widget build(BuildContext context) {
 
-    return FormField<List<ImageFieldData>>(
-      initialValue: widget.bone.value??[],
-      onSaved: widget.bone.onSaved,
-      validator: (value) => widget.nosy(widget.bone.validator(value))?.text,
-      builder: (FormFieldState<List<ImageFieldData>> state) {
-        _state = state;
-//        if (widget.bone.value != state.value)
-//          // ignore: invalid_use_of_protected_member
-//          state.setValue(widget.bone.value);
-        List<ImageFieldData> _values = state.value;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Expanded(
+          child: ObservableListBuilder<ImageFieldData>(
+            builder: (_, itemBuilder, state) {
 
-        return AspectRatio(
-          aspectRatio: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ListViewPlusChild(
-              itemCount: _values.length,
-              maxImages: widget.bone.maxImages,
-              child: InkWell(
-                onTap: _onCreate,
-                child: const ImageInputFieldBlank(),
-              ),
-              builder: (_, index) {
-                final data = _values[index];
+              return ListViewPlusChild(
+                itemCount: state.data?.length??0,
+                maxImages: widget.bone.maxImages,
+                child: InkWell(
+                  onTap: _onCreate,
+                  child: const ImageInputFieldBlank(),
+                ),
+                builder: itemBuilder,
+              );
+            },
+            itemBuilder: (_, data, state) {
+              final img = ImageFieldDataView(
+                data: data,
+                onCreate: () => _onCreate(data),
+                onDelete: () => widget.bone.delete(data),
+                mover: (steps) => widget.bone.move(data, steps),
+              );
+              return widget.bone.maxImages < 2 ? img : AspectRatio(
+                aspectRatio: 1,
+                child: img,
+              );
+            },
+            stream: widget.bone.outTmpValue,),
+        ),
+        ObservableBuilder((_, error, state) {
 
-                final img = ImageFieldDataView(
-                  data: data,
-                  onCreate: () => _onCreate(data),
-                  onDelete: () => _onDelete(data),
-                  mover: (steps) => _onMove(steps, data),
-                );
-
-                return widget.bone.maxImages < 2 ? img : AspectRatio(
-                  aspectRatio: 1,
-                  child: img,
-                );
-              },
-            ),
-          ),
-        );
-      },
+          return error == null ? const SizedBox() : Text(widget.nosy(error)?.text,
+            style: Theme.of(context).inputDecorationTheme.errorStyle,);
+        }, stream: widget.bone.outError,),
+      ],
     );
   }
 }
 
 
 class ImageFieldValidator {
-  static get base => [undefined];
+  static List<FieldValidator<List<ImageFieldData>>> get base => [undefined];
 
-  static FieldError undefined(List<ImageFieldData> images) {
+  static Future<FieldError> undefined(List<ImageFieldData> images) async {
     if (images == null || images.length == 0)
       return ImageFieldError.undefined;
     return null;
@@ -199,7 +211,7 @@ void showInputImageDialog({
 
       Future<void> pickImage(ImageSource source) async {
         Navigator.pop(_context);
-        outImageFile(await ImagePicker.pickImage(source: source, imageQuality: 60));
+        outImageFile(await ImagePicker.pickImage(source: source));
       }
 
       return AlertDialog(
@@ -229,17 +241,22 @@ class ListViewPlusChild extends StatelessWidget {
     this.space: 8.0,
     @required this.itemCount, @required this.maxImages,
     @required this.builder, @required this.child,
-  }) : super(key: key);
+  }) : assert(itemCount != null), super(key: key);
 
   @override
   Widget build(BuildContext context) {
 
-    if (maxImages < 2) {
-      if (itemCount < 1)
-        return child;
-      else
-        return builder(context, 0);
-    }
+    if (itemCount < 1)
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: space),
+        child: child,
+      );
+
+    if (maxImages < 2)
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: space),
+        child: builder(context, 0),
+      );
 
     return ListViewSeparated.builder(
       separator: SizedBox(width: space,),
@@ -324,15 +341,6 @@ class ImageFieldDataView extends StatelessWidget {
     );
   }
 }
-
-
-class MoveBackIconButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
 
 
 class ImageInputFieldBlank extends StatelessWidget {

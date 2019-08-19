@@ -11,3 +11,7 @@ abstract class ModelBase {
     }).join(", ")})";
   }
 }
+
+abstract class UserBase extends ModelBase {
+
+}

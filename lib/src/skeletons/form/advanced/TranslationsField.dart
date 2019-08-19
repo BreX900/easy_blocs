@@ -1,64 +1,108 @@
 
+import 'dart:async';
+
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
-import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
 import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart';
 
 
-class TranslationsFieldDecoration {
-  final InputDecoration decoration;
-  final EdgeInsets padding;
-  final int lines;
+class TranslationsFieldSheet {
+  final bool isEnable;
 
-  const TranslationsFieldDecoration({Translations value,
-    this.decoration: const InputDecoration(),
-    this.padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-    this.lines: 1,
-  });
+  const TranslationsFieldSheet({
+    this.isEnable: true,
+  }): assert(isEnable != null);
 
-  TranslationsFieldDecoration copyWith({InputDecoration decoration, EdgeInsets padding, int lines}) {
-    return TranslationsFieldDecoration(
-      decoration: decoration??this.decoration,
-      padding: padding??this.padding,
-      lines: lines??this.lines,
+  TranslationsFieldSheet copyWith({FieldError error, bool isEnable,}) {
+    return TranslationsFieldSheet(
+      isEnable: isEnable??this.isEnable,
     );
   }
 }
 
 
-abstract class TranslationsFieldBone extends FieldBone<Translations> {}
+class TranslationsDecoration {
+  final InputDecoration decoration;
+  final int maxLines, minLines;
+
+  final EdgeInsets padding;
+
+  const TranslationsDecoration({
+    this.decoration: const InputDecoration(),
+    this.maxLines: 1, this.minLines: 1,
+
+    this.padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+  });
+
+  TranslationsDecoration copyWith({InputDecoration decoration, bool isEnable, int maxLines, int minLines}) {
+    return TranslationsDecoration(
+      decoration: decoration ?? this.decoration,
+      maxLines: maxLines??this.maxLines,
+      minLines : minLines ?? this.minLines,
+    );
+  }
+}
+
+
+abstract class TranslationsFieldBone extends FieldBone<Translations> {
+  Stream<TranslationsFieldSheet> get outSheet;
+  Stream<Data2<TranslationsFieldSheet, FieldError>> get outSheetAndError;
+}
 
 
 class TranslationsFieldSkeleton extends FieldSkeleton<Translations> implements TranslationsFieldBone {
   TranslationsFieldSkeleton({
-    Translations value,
+    Translations seed,
     List<FieldValidator<Translations>> validators,
   }): super(
-    value: value,
-    validators: validators??[TranslationsFieldValidator.validator],
+    seed: seed,
+    validators: validators??TranslationsFieldValidator.base,
   );
+
+  @override
+  void dispose() {
+    _sheetController.close();
+    super.dispose();
+  }
+
+  BehaviorSubject<TranslationsFieldSheet> _sheetController = BehaviorSubject.seeded(const TranslationsFieldSheet());
+  Stream<TranslationsFieldSheet> get outSheet => _sheetController;
+  TranslationsFieldSheet get sheet => _sheetController.value;
+  void inSheet(TranslationsFieldSheet sheet) => _sheetController.add(sheet);
+
+  Stream<Data2<TranslationsFieldSheet, FieldError>> _outSheetAndError;
+  Stream<Data2<TranslationsFieldSheet, FieldError>> get outSheetAndError {
+    if (_outSheetAndError == null)
+      _outSheetAndError = Data2.combineLatest(outSheet, outError);
+    return _outSheetAndError;
+  }
+
+  @override
+  void inFieldState(FieldState state) => inSheet(sheet.copyWith(isEnable: state == FieldState.active));
 }
 
 
-class TranslationsFieldShell extends StatefulWidget implements FocusShell {
+class TranslationsFieldShell extends StatefulWidget implements FieldShell, FocusShell {
   final TranslationsFieldBone bone;
   @override
-  final MapFocusBone mapFocusBone;
+  final FocuserBone mapFocusBone;
   @override
   final FocusNode focusNode;
 
   final List<Locale> locales;
 
   final FieldErrorTranslator nosy;
-  final TranslationsFieldDecoration decoration;
+
+  final TranslationsDecoration decoration;
 
   const TranslationsFieldShell({Key key,
     @required this.bone,
     this.mapFocusBone, this.focusNode,
     this.locales,
     this.nosy: byPassNoisy,
-    this.decoration: const TranslationsFieldDecoration(),
+    this.decoration: const TranslationsDecoration(),
   }) :
         assert(bone != null),
         super(key: key);
@@ -68,37 +112,35 @@ class TranslationsFieldShell extends StatefulWidget implements FocusShell {
 }
 
 class TranslationsFieldShellState extends State<TranslationsFieldShell>
-    with FocusShellStateMixin, TickerProviderStateMixin {
+    with FieldStateMixin, FocusShellStateMixin, TickerProviderStateMixin {
   final repositoryBloc = RepositoryBlocBase.of();
 
   TabController _tabController;
   Map<String, TextEditingController> _textControllers;
   List<Locale> _locales;
 
-  Translations _translations;
+  ObservableSubscriber<Translations> _valueSubscriber;
 
   @override
   void initState() {
-    super.initState();
-    _translations = widget.bone.value;
     _locales = widget.locales??repositoryBloc.supportedLocales;
     _tabController = TabController(
       length: _locales.length, vsync: this,
       initialIndex: _locales.indexWhere((lc) => lc.languageCode == repositoryBloc.locale.languageCode,
-    ),
+      ),
     );
     _textControllers = _locales.asMap().map((_, lc) {
       return MapEntry(lc.languageCode, TextEditingController());
     });
-    _updateTranslations();
+    super.initState();
+    _valueSubscriber = ObservableSubscriber(_valueListener)..subscribe(widget.bone.outValue);
   }
 
   @override
   void didUpdateWidget(TranslationsFieldShell oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_translations != widget.bone.value) {
-      _translations = widget.bone.value;
-      _updateTranslations();
+    if (widget.bone != oldWidget.bone) {
+      _valueSubscriber..unsubscribe()..subscribe(widget.bone.outValue);
     }
   }
 
@@ -106,17 +148,16 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
   void dispose() {
     _tabController.dispose();
     _textControllers.values.forEach((controller) => controller.dispose());
+    _valueSubscriber.unsubscribe();
     super.dispose();
   }
 
-  void _updateTranslations() {
-    if (_translations == null)
-      return;
-
-    _translations.toJson().forEach((lc, text) {
+  void _valueListener(ObservableState<Translations> update) {
+    (update.data??const TranslationsConst()).toJson().forEach((lc, text) {
       final textController = _textControllers[lc];
-      if (textController.text != text)
-        _textControllers[lc].text = text;
+      if (textController == null || textController.text == text)
+        return;
+      textController.text = text;
     });
   }
 
@@ -128,99 +169,53 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
 
-    return FormField<Translations>(
-      onSaved: widget.bone.onSaved,
-      validator: (value) {
-        return widget.nosy(widget.bone.validator(value))?.text;
-      },
-      initialValue: _toTranslations(),
-      builder: (state) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabs: _locales.map((lc) {
 
-        final labelStyle = theme.inputDecorationTheme.labelStyle??theme.textTheme.body1;
+            return FlagView(
+              locale: lc,
+              child: InkWell(),
+            );
+          }).toList(),
+        ),
+        DefaultTabBarBuilder(
+          controller: _tabController,
+          builder: (_, index, __) {
+            final languageCode = _locales[index].languageCode;
+            final textController = _textControllers[languageCode];
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabs: _locales.map((lc) {
+            return ObservableBuilder<Data2<TranslationsFieldSheet, FieldError>>((_, data, state) {
 
-                return FlagView(
-                  locale: lc,
-                  child: InkWell(),
-                );
-              }).toList(),
-            ),
-            DefaultTabBarBuilder(
-              controller: _tabController,
-              builder: (_, index, __) {
-                final languageCode = _locales[index].languageCode;
-                final textController = _textControllers[languageCode];
-
-                return Padding(
-                  padding: widget.decoration.padding,
-                  child: TextField(
-                    controller: textController,
-                    onChanged: (text) {
-                      // ignore: invalid_use_of_protected_member
-                      state.setValue(_toTranslations());
-                    },
-                    decoration: widget.decoration.decoration.copyWith(
-                      errorText: state.errorText,
-                    ),
-                    maxLines: widget.decoration.lines,
-                    minLines: widget.decoration.lines,
-                  ),
-                );
-              },
-            ),
-//            SizedBox(
-//              height: (widget.decoration.lines*labelStyle.fontSize)
-//                  + ((widget.decoration.lines-1)*(labelStyle.height??4.0))
-//                  + (theme.inputDecorationTheme.contentPadding?.vertical??(20.0*2))
-//                  + 10.0,
-//              child: TabBarView(
-//                controller: _tabController,
-//                children: _locales.map((lc) {
-//                  final languageCode = lc.languageCode;
-//                  final textController = _textControllers[languageCode];
-//
-//                  return Padding(
-//                    padding: widget.decoration.padding,
-//                    child: TextField(
-//                      controller: textController,
-//                      onChanged: (text) {
-//                        // ignore: invalid_use_of_protected_member
-//                        state.setValue(_toTranslations());
-//                      },
-//                      decoration: widget.decoration.decoration,
-//                      maxLines: widget.decoration.lines,
-//                      minLines: widget.decoration.lines,
-//                    ),
-//                  );
-//                }).toList(),
-//              ),
-//            ),
-//            if (state.errorText != null)
-//              Text("${state.errorText}",
-//                style: theme.inputDecorationTheme.errorStyle,
-//                maxLines: theme.inputDecorationTheme.errorMaxLines,
-//              ),
-          ],
-        );
-      },
+              return TextField(
+                controller: textController,
+                onChanged: data.data1.isEnable ? (text) {
+                  widget.bone.inTmpValue(_toTranslations());
+                } : null,
+                decoration: widget.decoration.decoration.copyWith(
+                  errorText: widget.nosy(data.data2)?.text,
+                ),
+                maxLines: widget.decoration.maxLines,
+                minLines: widget.decoration.maxLines,
+              );
+            }, stream: widget.bone.outSheetAndError);
+          },
+        ),
+      ],
     );
   }
 }
 
 
 class TranslationsFieldValidator {
-  static const base = const [validator];
+  static List<FieldValidator<Translations>> get base => [validator];
 
-  static FieldError validator(Translations translations) {
+  static Future<FieldError> validator(Translations translations) async {
     if (translations == null || translations.isUndefined)
       return TranslationsFieldError.undefined;
     return null;
@@ -229,7 +224,7 @@ class TranslationsFieldValidator {
 
 
 class TranslationsFieldError {
-  static const undefined = FieldError.undefined;
+  static const FieldError undefined = FieldError.undefined;
 }
 
 //class TranslationsFieldShell<B extends TranslationsFieldBone>

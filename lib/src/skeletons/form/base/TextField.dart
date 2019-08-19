@@ -1,12 +1,16 @@
+import 'dart:async';
+
+import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
-import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
-import 'package:easy_blocs/src/skeletons/form/base/IntField.dart';
-import 'package:easy_blocs/src/skeletons/form/base/PriceField.dart';
+import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rational/rational.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:easy_blocs/src/skeletons/form/TextInputFormatters.dart';
 
-class TextFieldShield {
+
+class TextFieldSheet {
   final TextInputType keyboardType;
 
   final bool obscureText;
@@ -14,57 +18,81 @@ class TextFieldShield {
 
   final List<TextInputFormatter> inputFormatters;
 
-  const TextFieldShield({
+  final bool isEnable;
+
+  const TextFieldSheet({
     this.keyboardType,
     this.obscureText: false, this.maxLength,
     this.inputFormatters,
+    this.isEnable,
   });
 
-  TextFieldShield copyWith({
+  TextFieldSheet copyWith({
+    FieldError error,
     TextInputType keyboardType,
     bool obscureText, int maxLength,
     List<TextInputFormatter> inputFormatters,
+    bool isEnable,
   }) {
-    return TextFieldShield(
+    return TextFieldSheet(
       keyboardType: keyboardType??this.keyboardType,
       obscureText: obscureText??this.obscureText,
       maxLength: maxLength??this.maxLength,
       inputFormatters: inputFormatters??this.inputFormatters,
+      isEnable: isEnable??this.isEnable,
     );
   }
 }
 
 abstract class TextFieldBone extends FieldBone<String> {
-  TextFieldShield shield;
+  Stream<String> get outValue;
+  Stream<String> get outTmpValue;
+  Stream<TextFieldSheet> get outSheet;
+  Stream<Data2<FieldError, TextFieldSheet>> get outErrorAndSheet;
 }
 
 
 class TextFieldSkeleton extends FieldSkeleton<String> implements TextFieldBone {
   TextFieldSkeleton({
-    String value,
+    String seed,
     List<FieldValidator<String>> validators,
-  }): super(
-    value: value,
-    validators: validators??[TextFieldValidator.undefined],
-  );
+    TextFieldSheet sheet: const TextFieldSheet(),
+  }) :
+        _sheetController = BehaviorSubject.seeded(sheet), super(
+          seed: seed,
+          validators: validators??[TextFieldValidator.undefined],
+        );
 
-  TextFieldShield _shield;
-  TextFieldShield get shield => _shield;
-  set shield(TextFieldShield shield) {
-    if (_shield != shield) {
-      _shield = shield;
-      notifyListeners();
-    }
+  @override
+  void dispose() {
+    _sheetController.close();
+    super.dispose();
+  }
+
+  final BehaviorSubject<TextFieldSheet> _sheetController;
+  Stream<TextFieldSheet> get outSheet => _sheetController;
+  TextFieldSheet get sheet => _sheetController.value;
+  Future<void> inSheet(TextFieldSheet sheet) async => _sheetController.add(sheet);
+
+  Stream<Data2<FieldError, TextFieldSheet>> _outErrorAndSheet;
+  Stream<Data2<FieldError, TextFieldSheet>> get outErrorAndSheet {
+    if (_outErrorAndSheet == null)
+      _outErrorAndSheet = Data2.combineLatest(outError, outSheet);
+    return _outErrorAndSheet;
+  }
+
+  @override
+  Future<void> inFieldState(FieldState state) async {
+    await inSheet(sheet.copyWith(isEnable: state == FieldState.active));
   }
 }
 
 /// Il valore initialValue se cambiato non porta nessuna modifica per ciò è da racchiudere tutti
 /// i valori in transizioni e non ha senso tentare di aggiornarli in seguito
-class TextFieldShell extends StatefulWidget implements FocusShell {
+class TextFieldShell extends StatefulWidget implements FieldShell, FocusShell {
   final TextFieldBone bone;
-  TextFieldShield get shield => bone.shield;
   @override
-  final MapFocusBone mapFocusBone;
+  final FocuserBone mapFocusBone;
   @override
   final FocusNode focusNode;
 
@@ -80,59 +108,94 @@ class TextFieldShell extends StatefulWidget implements FocusShell {
         assert(decoration != null),
         super(key: key);
 
+  const TextFieldShell.phoneNumber({
+    @required TextFieldBone bone,
+    FocuserBone mapFocusBone, FocusNode focusNode,
+    FieldErrorTranslator nosy: byPassNoisy,
+    InputDecoration decoration: const TranslationsInputDecoration(
+      prefixIcon: Icon(Icons.phone),
+      translationsHintText: TranslationsConst(
+        it: "Numero del Cellulare",
+        en: "Phone Number",
+      ),
+    ),
+  }) : this(
+    bone: bone, mapFocusBone: mapFocusBone, focusNode: focusNode, nosy: nosy, decoration: decoration,
+
+  );
+
   @override
   TextFieldShellState createState() => TextFieldShellState();
 }
 
-class TextFieldShellState extends State<TextFieldShell> with FocusShellStateMixin {
-  TextEditingController _controller;
-  String _value;
+class TextFieldShellState extends State<TextFieldShell> with FieldStateMixin, FocusShellStateMixin {
+
+  final TextEditingController _controller = TextEditingController();
+
+  ObservableSubscriber<String> _valueSubscriber;
+  ObservableSubscriber<Data2<FieldError, TextFieldSheet>> _dataSubscriber;
+
+  Data2<FieldError, TextFieldSheet> _data;
 
   @override
   void initState() {
     super.initState();
-    assert(widget.bone != null);
-    _value = widget.bone.value;
-    _controller = TextEditingController(text: widget.bone.value);
-    assert(widget.shield != null);
+    _valueSubscriber = ObservableSubscriber(_valueListener);
+    _dataSubscriber = ObservableSubscriber(_dataListener);
+    _subscribe();
   }
 
   @override
   void didUpdateWidget(TextFieldShell oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_value != widget.bone.value) {
-      _value = widget.bone.value;
-      _controller.text = _value;
+    if (widget.bone != oldWidget.bone) {
+      _subscribe();
+      _unsubscribe();
     }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _unsubscribe();
     super.dispose();
+  }
+
+  void _subscribe() {
+    _valueSubscriber.subscribe(widget.bone.outValue);
+    _dataSubscriber.subscribe(widget.bone.outErrorAndSheet);
+  }
+  void _unsubscribe() {
+    _valueSubscriber.unsubscribe();
+    _dataSubscriber.unsubscribe();
+  }
+
+  void _valueListener(ObservableState<String> update) {
+    _controller.text = update.data;
+  }
+  void _dataListener(ObservableState<Data2<FieldError, TextFieldSheet>> update) {
+    setState(() => _data = update.data);
   }
 
   @override
   Widget build(BuildContext context) {
 
-    return TextFormField(
+    return TextField(
       controller: _controller,
-
+      onChanged: widget.bone.inTmpValue,
       focusNode: focusNode,
 
-      decoration: widget.decoration,
+      decoration: widget.decoration.applyDefaults(Theme.of(context).inputDecorationTheme).copyWith(
+        errorText: widget.nosy(_data.data1)?.text,
+      ),
 
-      keyboardType: widget.shield.keyboardType,
+      keyboardType: _data.data2.keyboardType,
 
-      obscureText: widget.shield.obscureText,
-      maxLength: widget.shield.maxLength,
+      obscureText: _data.data2.obscureText,
+      maxLength: _data.data2.maxLength,
+      inputFormatters: _data.data2.inputFormatters,
 
-      onFieldSubmitted: (_) => nextFocus(),
-
-      onSaved: widget.bone.onSaved,
-      validator: (value) => widget.nosy(widget.bone.validator(value))?.text,
-
-      inputFormatters: widget.shield.inputFormatters,
+      onSubmitted: (_) => nextFocus(),
     );
   }
 }
@@ -143,7 +206,7 @@ abstract class TextFieldValidator {
     undefined,
   ];
 
-  static FieldError undefined(String value) {
+  static Future<FieldError> undefined(String value) async {
     if (value == null || value.isEmpty)
       return TextFieldError.undefined;
     return null;
@@ -158,69 +221,94 @@ class TextFieldError {
 
 typedef String _Writer<V>(V value);
 typedef V _Reader<V>(String value);
-class TextFieldAdapter<S extends FieldSkeleton<V>, V> extends TextFieldBone {
-  final S skeleton;
 
+
+class TextFieldAdapter<V> extends TextFieldSkeleton {
+  final List<FieldValidator<V>> adapterValidators;
   final _Writer<V> _writer;
-  @override
-  String get value => skeleton.value == null ? null : _writer(skeleton.value);
-
   final _Reader<V> _reader;
 
-  TextFieldAdapter(this.skeleton, this._writer, this._reader, [TextFieldShield shield = const TextFieldShield()]) {
-    _shield = shield;
+  V get adapterValue => _reader(value);
+  void inAdapterValue(V value) => inValue(_writer(value));
 
+  TextFieldAdapter(this._writer, this._reader, {
+    int seed,
+    List<FieldValidator<V>> adapterValidators,
+    List<FieldValidator<String>> textValidators,
+    TextFieldSheet sheet: const TextFieldSheet(),
+  }) : this.adapterValidators = adapterValidators??[], super(
+    seed: seed?.toString(),
+    validators: textValidators,
+    sheet: sheet,
+  ) {
+    this.validators.add((text) async {
+      if (this.adapterValidators == null)
+        return null;
+      final value = _reader(text);
+      for (var validator in this.adapterValidators) {
+        final error = await validator(value);
+        if (error != null)
+          return error;
+      }
+      return null;
+    });
   }
 
-  static TextFieldAdapter<IntFieldSkeleton, int> integer(IntFieldSkeleton skeleton) {
-    return TextFieldAdapter(skeleton, IntFieldSkeleton.writer, IntFieldSkeleton.reader, const TextFieldShield(
+  static TextFieldAdapter<int> integer({
+    TextFieldSheet sheet: const TextFieldSheet(),
+    List<FieldValidator<int>> adapterValidators,
+    List<FieldValidator<String>> textValidators,
+  }) {
+
+    return TextFieldAdapter<int>((int value) {
+      return value?.toString();
+    }, (String value) {
+      return int.tryParse(value);
+    }, sheet: sheet.copyWith(
+      inputFormatters: TextInputFormatters.integer,
       keyboardType: TextInputType.number,
-    ));
-  }
-  static TextFieldAdapter<PriceFieldSkeleton, Rational> price(PriceFieldSkeleton skeleton) {
-
-    return TextFieldAdapter(skeleton, PriceFieldSkeleton.writer, PriceFieldSkeleton.reader, const TextFieldShield(
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
-    ));
+    ),
+        adapterValidators: adapterValidators??[ValueFieldValidator.undefined],
+        textValidators: textValidators,
+    );
   }
 
-  V get parseValue => skeleton.value;
+  static TextFieldAdapter<Rational> price({
+    TextFieldSheet sheet: const TextFieldSheet(),
+    List<FieldValidator<int>> adapterValidators,
+    List<FieldValidator<String>> textValidators,
+  }) {
 
-  TextFieldShield _shield;
-  TextFieldShield get shield => _shield;
-  set shield(TextFieldShield shield) {
-    if (_shield != shield) {
-      _shield = shield;
-      notifyListeners();
-    }
+    return TextFieldAdapter<Rational>((Rational value) {
+      return value?.toStringAsPrecision(2);
+    }, (String value) {
+      return Rational.parse(value.replaceAll(",", "."));
+    }, sheet: sheet.copyWith(
+      inputFormatters: TextInputFormatters.price,
+      keyboardType: TextInputType.number,
+    ),
+      adapterValidators: adapterValidators??[ValueFieldValidator.undefined],
+      textValidators: textValidators,
+    );
   }
 
-  @override
-  FieldError validator(String value) {
-    if (value == null)
-      return skeleton.validator(null);
-    final res = _reader(value);
-    if (res == null)
-      return TextFieldError.invalid;
-    return skeleton.validator(res);
+  static TextFieldAdapter<int> phoneNumber({
+    TextFieldSheet sheet: const TextFieldSheet(),
+    List<FieldValidator<int>> adapterValidators,
+    List<FieldValidator<String>> textValidators,
+  }) {
+
+    return TextFieldAdapter<int>((int value) {
+      return value?.toString();
+    }, (String value) {
+      return int.tryParse(value);
+    }, sheet: sheet.copyWith(
+      inputFormatters: TextInputFormatters.phoneNumber,
+      keyboardType: TextInputType.phone,
+      maxLength: 10,
+    ),
+      adapterValidators: adapterValidators??[ValueFieldValidator.undefined],
+      textValidators: textValidators,
+    );
   }
-
-  @override
-  void onSaved(String value) => skeleton.value = _reader(value);
-
-  @override
-  void addListener(VoidCallback listener) => skeleton.addListener(listener);
-
-  @override
-  void dispose() => skeleton.dispose();
-
-  @override
-  bool get hasListeners => skeleton.hasListeners;
-
-  @override
-  // ignore: invalid_use_of_protected_member
-  Future<void> notifyListeners() => skeleton.notifyListeners();
-
-  @override
-  void removeListener(VoidCallback listener) => skeleton.removeListener(listener);
 }
