@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:easy_blocs/src/rxdart_extension/ObservableBuilder.dart';
 import 'package:easy_blocs/src/skeletons/Skeleton.dart';
 import 'package:easy_blocs/src/skeletons/button/Button.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';

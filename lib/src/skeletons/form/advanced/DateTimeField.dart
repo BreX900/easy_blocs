@@ -117,7 +117,7 @@ class DateTimeFieldShell<B extends DateTimeFieldBone> extends StatefulWidget imp
     @required this.bone, @required this.sheet,
     this.mapFocusBone, this.focusNode,
 
-    this.nosy: nosey, this.decoration: const InputDecoration(),
+    this.nosy: byPassNoisy, this.decoration: const InputDecoration(),
 
     DateFormat format,
     this.resetIcon,

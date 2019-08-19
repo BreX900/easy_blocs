@@ -1,6 +1,5 @@
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/checker/checkers/Checker.dart';
-import 'package:easy_blocs/src/checker/checkers/EmailChecker.dart';
 import 'package:flutter/material.dart';
 
 

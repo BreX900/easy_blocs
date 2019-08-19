@@ -24,8 +24,8 @@ dependencies:
 
   image_picker: any
   dotted_border: any
-  datetime_picker_formfield: any
   flutter_cupertino_date_picker: any
+  datetime_picker_formfield: any
 
 
 
