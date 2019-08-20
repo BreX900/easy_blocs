@@ -192,7 +192,7 @@ class _DateTimeFieldShellState extends State<DateTimeFieldShell> with FieldState
       ),
       onShowPicker: (_context, currentValue) async {
         Completer<DateTime> completer = Completer();
-        print(widget.bone.validator.getMinDateTime());
+        
         DatePicker.showDatePicker(_context,
           dateFormat: '${widget.format.pattern}',
           minDateTime: widget.bone.validator.getMinDateTime(),

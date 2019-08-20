@@ -25,13 +25,14 @@ class SpController implements SpManager {
   Observable<Sp> get outSp => _spController.stream;
 
   Future<void> inContext(BuildContext context) async {
-    if (_sp == null) {
-      final sp = _sp.shouldUpdate(context);
-      if (sp != null) _spController.add(sp);
-    }
+    final sp = _sp.shouldUpdate(context);
+    if (sp != null)
+      _spController.add(sp);
   }
 
-  SpController();
+  SpController() {
+    _spController.listen(print);
+  }
 }
 
 

@@ -25,9 +25,11 @@ class Sp {
   Sp shouldUpdate(BuildContext context) {
     final sp = Sp.context(context);
 
-    return sp.pixelRatio == pixelRatio || sp.screenSize == screenSize
-        || sp.statusBarHeight == statusBarHeight || sp.bottomBarHeight == bottomBarHeight
-        || sp.textScaleFactor == textScaleFactor ?  null : sp;
+    return sp.pixelRatio == pixelRatio
+        && sp.screenSize == screenSize
+        && sp.statusBarHeight == statusBarHeight
+        && sp.bottomBarHeight == bottomBarHeight
+        && sp.textScaleFactor == textScaleFactor ?  null : sp;
   }
 
   Sp({

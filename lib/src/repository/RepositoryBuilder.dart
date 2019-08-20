@@ -39,7 +39,7 @@ class RepositoryBuilder<T> extends StatefulWidget {
 class _RepositoryBuilderState<T> extends State<RepositoryBuilder<T>> {
 
 
-  ObservableSubscriber<RepositoryData> _dataSubscriber;
+  ObservableSubscriber<Data2<Locale, Sp>> _dataSubscriber;
 
   RepositoryData _data;
 
@@ -62,21 +62,20 @@ class _RepositoryBuilderState<T> extends State<RepositoryBuilder<T>> {
     assert(repositoryBloc != null);
     BlocProvider.init<RepositoryBlocBase>(repositoryBloc);
 
-    _data = RepositoryData(screen: await widget.worker(context, sharedPreferences));
+    _data = RepositoryData(
+      screen: await widget.worker(context, sharedPreferences),
+      locale: repositoryBloc.locale,
+      sp: repositoryBloc.sp,
+    );
 
-    final outLocale = repositoryBloc.outLocale;
-    final outSp = repositoryBloc.outSp;
-
-    _dataSubscriber.subscribe(Observable.combineLatest2(repositoryBloc.outLocale, repositoryBloc.outSp, (lc, sp) {
-      return _data.copyWith(locale: lc, sp: sp);
-    }).shareValueSeeded(_data.copyWith(
-      locale: outLocale is ValueObservable<Locale> ? outLocale.value : Locale('en'),
-      sp: outSp is ValueObservable<Sp> ? outSp.value : Sp(),
-    )));
+    _dataSubscriber.subscribe(Data2.combineLatest(repositoryBloc.outLocale, repositoryBloc.outSp));
   }
 
-  void _dataListener(ObservableState<RepositoryData> update) {
-    setState(() => _data = update.data);
+  void _dataListener(ObservableState<Data2<Locale, Sp>> update) {
+    setState(() => _data = _data.copyWith(
+      locale: update.data.data1,
+      sp: update.data.data2,
+    ));
   }
 
   @override
@@ -90,7 +89,7 @@ class _RepositoryBuilderState<T> extends State<RepositoryBuilder<T>> {
         child: const CircularProgressIndicator(),
       );
     }
-
+    print("BUILD ${_data.sp}");
     return widget.builder(context, _data);
   }
 }

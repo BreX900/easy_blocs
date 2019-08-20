@@ -24,8 +24,8 @@ class Data2<Q, W> {
   static Data2<Q, W> combiner<Q, W>(Q data1, W data2) => Data2(data1, data2);
   static ValueObservable<Data2<Q, W>> combineLatest<Q, W>(Stream<Q> stream1, Stream<W> stream2) {
     return Observable.combineLatest2<Q, W, Data2<Q, W>>(stream1, stream2, combiner).shareValueSeeded(Data2(
-      stream1 is ValueObservable<Q> ? stream1.value : null,
-      stream2 is ValueObservable<W> ? stream2.value : null,
+      stream1 is ValueObservable ? (stream1 as ValueObservable<Q>).value : null,
+      stream2 is ValueObservable ? (stream2 as ValueObservable<W>).value : null,
     ));
   }
 }
