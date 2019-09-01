@@ -5,39 +5,32 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rxdart/rxdart.dart';
 
-
 typedef Translations Translator(Object value);
-
 
 const String _defaultTranslation = 'en';
 
 String translator(Translations translations) {
-  return translations[RepositoryBlocBase.of().locale.languageCode]
-      ?? (translations[_defaultTranslation]
-          ?? () {
-            final values =  translations.values;
-            if (values.length == 0)
-              return "";
+  return translations[RepositoryBlocBase.of().locale.languageCode] ??
+      (translations[_defaultTranslation] ??
+          () {
+            final values = translations.values;
+            if (values.length == 0) return "";
             return values.first;
           }());
 }
 
-
 enum LoadingLanguage {
-  SUCCESS, FAILED_OR_NOT_START,
+  SUCCESS,
+  FAILED_OR_NOT_START,
 }
 
-
 abstract class TranslatorBone implements Bone {
-  Observable<Locale> get outLocale;
+  //Observable<Locale> get outLocale;
   Locale get locale;
   NumberFormat get currencyFormat;
 
-  Future<void> inContext(BuildContext context);
-
-  Future<void> inLocale(Locale lc);
+  void inLocale(Locale lc);
 }
-
 
 /// In ThemeData add 'platform: TargetPlatform.android,'
 class TranslatorSkeleton extends Skeleton implements TranslatorBone {
@@ -46,7 +39,8 @@ class TranslatorSkeleton extends Skeleton implements TranslatorBone {
 
   Locale get locale => _localeControl.value;
 
-  TranslatorSkeleton({Locale locale: const Locale('en')}) : this._localeControl = BehaviorSubject.seeded(locale) {
+  TranslatorSkeleton({Locale locale: const Locale('en')})
+      : this._localeControl = BehaviorSubject.seeded(locale) {
     _currencyFormat = NumberFormat.currency(locale: locale.toString(), symbol: '€');
     _getStore();
   }
@@ -58,18 +52,13 @@ class TranslatorSkeleton extends Skeleton implements TranslatorBone {
   final BehaviorSubject<Locale> _localeControl;
   Observable<Locale> get outLocale => _localeControl.stream;
 
-  Future<void> inContext(BuildContext context) async {
-    if (_loading == LoadingLanguage.FAILED_OR_NOT_START)
-      await inLocale(Localizations.localeOf(context));
-  }
-
-  Future<void> inLocale(Locale lc) async {
+  void inLocale(Locale lc) {
     assert(lc != null);
 
     if (lc != locale) {
-      _currencyFormat = NumberFormat.currency(locale: lc.toString(), symbol: '€');
       _localeControl.add(lc);
-      await _updateStore();
+      _currencyFormat = NumberFormat.currency(locale: locale.toString(), symbol: '€');
+      _updateStore();
     }
   }
 
@@ -77,7 +66,7 @@ class TranslatorSkeleton extends Skeleton implements TranslatorBone {
     final lc = (await SharedPreferences.getInstance()).getString(_KEY);
     if (lc != null && lc.isNotEmpty) {
       _loading = LoadingLanguage.SUCCESS;
-      await inLocale(Locale(lc));
+      inLocale(Locale(lc));
     }
   }
 
@@ -87,20 +76,25 @@ class TranslatorSkeleton extends Skeleton implements TranslatorBone {
 
   NumberFormat _currencyFormat;
   NumberFormat get currencyFormat => _currencyFormat;
-}
 
+  void inDeviceLocale(Locale lc) {
+    if (_loading == LoadingLanguage.FAILED_OR_NOT_START) inLocale(lc);
+  }
+}
 
 mixin MixinTranslatorBone implements TranslatorBone {
   TranslatorBone get translatorManager;
-  Observable<Locale> get outLocale => translatorManager.outLocale;
+  //Observable<Locale> get outLocale => translatorManager.outLocale;
   Locale get locale => translatorManager.locale;
   NumberFormat get currencyFormat => translatorManager.currencyFormat;
 
-  Future<void> inContext(BuildContext context) {
-    return translatorManager.inContext(context);
-  }
-
-  Future<void> inLocale(Locale lc) {
-    return translatorManager.inLocale(lc);
-  }
+  void inLocale(Locale lc) => translatorManager.inLocale(lc);
 }
+
+//mixin TranslatorObserver<W extends StatefulWidget> on WidgetsBindingStateListener<W> {
+//  @override
+//  void didChangeMetrics() {
+//    super.didChangeMetrics();
+//    print(widgetsBinding.window.locale);
+//  }
+//}

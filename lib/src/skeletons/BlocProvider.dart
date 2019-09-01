@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 
 
 class BlocProvider {
-  static final _cache = HashMap<Type, BlocBase>();
+  static HashMap<Type, BlocBase> _cache = HashMap<Type, BlocBase>();
 
   static TypeSkeleton init<TypeSkeleton extends BlocBase>(TypeSkeleton bloc) {
     assert(!_cache.containsKey(TypeSkeleton), "Already contain $TypeSkeleton");
@@ -16,7 +16,7 @@ class BlocProvider {
 
   static Skeleton of<TypeSkeleton extends BlocBase>([bool allowNull = false]) {
     final skeleton = _cache[TypeSkeleton];
-    assert(!allowNull || skeleton != null);
+    assert(allowNull || skeleton != null, "Must [init]");
     return skeleton;
   }
 
@@ -31,61 +31,30 @@ abstract class BlocBase extends Skeleton {
 }
 
 
-abstract class BlocScreen<M> extends BlocBase {
+abstract class BlocEvent extends BlocBase {
   Stream get outEvent;
-
-  Stream<M> get outData;
 }
 
 
-mixin ListenerDataMixin<WidgetType extends StatefulWidget, D> on State<WidgetType> {
-  Stream get outData;
+mixin BlocScreenStateMixin<WidgetType extends StatefulWidget, BlocType extends BlocEvent>
+on State<WidgetType> {
 
-  StreamSubscription _dataSubscription;
+  final BlocType bloc = BlocProvider.of<BlocType>();
 
-  D _data;
-  D get data => _data;
-
-  Object _error;
-  Object get error => _error;
+  StreamSubscription _subscription;
 
   @override
   void initState() {
     super.initState();
-    _dataSubscription = outData.listen((data) => setState(() {
-      _data = data;
-      _error = null;
-    }), onError: (error) => setState(() {
-      _error = error;
-      _data = null;
-    }));
+    _subscription = bloc.outEvent.listen(eventListener);
   }
 
   @override
   void dispose() {
-    _dataSubscription.cancel();
-    super.dispose();
-  }
-}
-
-
-mixin ListenerEventMixin<WidgetType extends StatefulWidget> on State<WidgetType> {
-  @required
-  Stream outEvent;
-
-  StreamSubscription _eventSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _eventSubscription = outEvent.listen(listenerEvent);
-  }
-
-  @override
-  void dispose() {
-    _eventSubscription.cancel();
+    _subscription.cancel();
+    BlocProvider.dispose<BlocType>();
     super.dispose();
   }
 
-  void listenerEvent(event);
+  Future<void> eventListener(event);
 }

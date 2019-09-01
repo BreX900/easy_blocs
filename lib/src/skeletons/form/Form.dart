@@ -7,10 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 
-
 abstract class FieldShell implements StatefulWidget {
   FieldBoneBase get bone;
 }
+
 mixin FieldStateMixin<WidgetType extends FieldShell> on State<WidgetType> {
   FormSkeleton _formBone;
 
@@ -41,16 +41,15 @@ mixin FieldStateMixin<WidgetType extends FieldShell> on State<WidgetType> {
   }
 }
 
-
 abstract class FieldBoneBase extends Bone {
   void _inFormState(FieldState state);
 }
+
 mixin FieldSkeletonBase implements FieldBoneBase {
   @override
   void _inFormState(FieldState state) => inFieldState(state);
   void inFieldState(FieldState state);
 }
-
 
 abstract class FieldBone<V> extends FieldBoneBase {
   Stream<V> get outValue;
@@ -67,10 +66,9 @@ abstract class FieldSkeleton<V> extends Skeleton with FieldSkeletonBase implemen
   FieldSkeleton({
     V seed,
     List<FieldValidator<V>> validators,
-  }) :
-        _valueController = BehaviorSubject.seeded(seed),
+  })  : _valueController = BehaviorSubject.seeded(seed),
         _tmpValueController = BehaviorSubject.seeded(seed),
-        this.validators = validators??[];
+        this.validators = validators ?? [];
 
   final BehaviorSubject<V> _valueController;
   Stream<V> get outValue => _valueController;
@@ -90,8 +88,7 @@ abstract class FieldSkeleton<V> extends Skeleton with FieldSkeletonBase implemen
   Stream<FieldError> get outError => _errorController;
   FieldError get error => _errorController.value;
   void inError(FieldError error) {
-    if (_errorController.value != error)
-      _errorController.add(error);
+    if (_errorController.value != error) _errorController.add(error);
   }
 
   @override
@@ -106,58 +103,51 @@ abstract class FieldSkeleton<V> extends Skeleton with FieldSkeletonBase implemen
       }
       inError(null);
       return true;
-    } catch(exc) {
-      inError(FieldError.exception);
+    } catch (exc) {
+      inError(FieldError.$exception);
       return false;
     }
   }
+
   @override
   void _save() => inValue(tmpValue);
 }
-
-
 
 typedef InputDecoration FieldDecorator<S>(S fieldBone);
 typedef Future<FieldError> FieldValidator<V>(V value);
 typedef Translations FieldErrorTranslator(FieldError error);
 
 TranslationsConst basicNoisy(FieldError error) {
-  switch (error) {
+  switch (error?.code) {
     case FieldError.exception:
-      {
-        return TranslationsConst(
-          it: "C'è stato un errore improvviso, controlla il campo",
-        );
-      }
+      return TranslationsConst(
+        it: "C'è stato un errore improvviso, controlla il campo",
+      );
+
     case FieldError.undefined:
-      {
-        return TranslationsConst(
-          it: "Campo non definito",
-        );
-      }
+      return TranslationsConst(
+        it: "Campo non definito",
+      );
+
     case FieldError.invalid:
-      {
-        return TranslationsConst(
-          it: "Il campo non è valido.",
-        );
-      }
-    default: {
-      return null;
-    }
+      return TranslationsConst(
+        it: "Il campo non è valido.",
+      );
+    default:
+      // ignore: deprecated_member_use_from_same_package
+      return byPassNoisy(error);
   }
 }
-
+@deprecated
 TranslationsConst byPassNoisy(FieldError error) {
-  final translations = basicNoisy(error);
-  return translations == null ? (
-      error == null ? null : TranslationsConst(en: error.code)
-  ) : translations;
+  return error == null ? null : TranslationsConst(en: error.code);
 }
 
 class FieldError {
-  static const FieldError exception = FieldError("ESCEPTION");
-  static const FieldError undefined = FieldError("UNDEFINED");
-  static const FieldError invalid = FieldError("INVALID");
+  static const String exception = "EXCEPTION", undefined = "UNDEFINED", invalid = "INVALID";
+  static const FieldError $exception = FieldError(exception);
+  static const FieldError $undefined = FieldError(undefined);
+  static const FieldError $invalid = FieldError(invalid);
 
   final String code;
   final Object data;
@@ -168,22 +158,19 @@ class FieldError {
   String toString() => "FieldError(code: $code, data: $data)";
 }
 
-
 class ValueFieldValidator {
   static List<FieldValidator<FieldError>> get base => [undefined];
   static Future<FieldError> undefined(value) async {
-    if (value == null)
-      return FieldError.undefined;
+    if (value == null) return FieldError.$undefined;
     return null;
   }
 }
 
-
-
 enum FieldState {
-  active, working, completed,
+  active,
+  working,
+  completed,
 }
-
 
 /// Form Controller
 
@@ -193,6 +180,7 @@ abstract class FormBone implements Bone {
     assert(field != null);
     _fields.add(field);
   }
+
   void removeField(FieldBoneBase field) => _fields.remove(field);
 
   Future<bool> validation();
@@ -213,36 +201,29 @@ class FormSkeleton extends Skeleton with FormBone {
     await Future.wait(_fields.map((field) async {
       if (field is FieldBone) {
         final res = await field._validation();
-        if (!res)
-          isValid = false;
+        if (!res) isValid = false;
       }
     }));
 
-    if (!isValid)
-      inState(FieldState.active);
+    if (!isValid) inState(FieldState.active);
 
     return isValid;
   }
 
   void save() => _fields.forEach((field) {
-    if (field is FieldBone)
-      field._save();
-  });
+        if (field is FieldBone) field._save();
+      });
 
   Future<void> submit(AsyncValueGetter<FieldState> resulter) => validation().then((res) async {
-    if (!await validation())
-      return null;
-    save();
-    return resulter().then(inState, onError: (_) {
-      inState(FieldState.active);
-    });
-  });
+        if (!await validation()) return null;
+        save();
+        return resulter().then(inState, onError: (_) {
+          inState(FieldState.active);
+        });
+      });
 
   @override
   Future<void> inState(FieldState fieldState) async {
-    _fields.forEach((field) => field. _inFormState(fieldState));
+    _fields.forEach((field) => field._inFormState(fieldState));
   }
 }
-
-
-

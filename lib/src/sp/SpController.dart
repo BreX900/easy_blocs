@@ -1,48 +1,44 @@
+import 'dart:async';
+
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/sp/Sp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
+import 'dart:ui' show Window;
 
-
-abstract class SpManager {
-  Observable<Sp> get outSp;
+abstract class SpBone extends Bone {
   Sp get sp;
-
-  Future<void> inContext(BuildContext context);
+//  void inWindow(Window window);
 }
 
-
-class SpController implements SpManager {
-  Sp get _sp => _spController.value;
-
-  void dispose() {
-    _spController.close();
-  }
-
-  BehaviorSubject<Sp> _spController = BehaviorSubject.seeded(Sp());
+class SpSkeleton extends Skeleton implements SpBone {
+  BehaviorSubject<Sp> _spController = BehaviorSubject();
   Sp get sp => _spController.value;
-  Observable<Sp> get outSp => _spController.stream;
+  Stream<Sp> get outSp => _spController;
 
-  Future<void> inContext(BuildContext context) async {
-    final sp = _sp.shouldUpdate(context);
-    if (sp != null)
-      _spController.add(sp);
+  void inWindow(Window window) {
+    inMediaQueryData(MediaQueryData.fromWindow(window));
   }
-
-  SpController() {
-    _spController.listen(print);
+  void inMediaQueryData(MediaQueryData data) {
+    final newSp = Sp.fromMediaQueryData(data);
+    if (sp == null) _spController.value = newSp;
+    if (newSp == null || sp.sameTo(newSp)) return;
+    _spController.value = newSp;
   }
 }
 
-
-mixin MixinSpManager implements SpManager{
-  SpManager get spManager;
+mixin MixinSpManager implements SpBone {
+  SpBone get spManager;
   Sp get sp => spManager.sp;
-
-  Observable<Sp> get outSp => spManager.outSp;
-
-  Future<void> inContext(BuildContext context) {
-    return spManager.inContext(context);
-  }
+//  void inWindow(Window window) => spManager.inWindow(window);
 }
+
+//mixin SpObserver<W extends StatefulWidget> on WidgetsBindingStateListener<W> {
+//  SpBone get spManager;
+//
+//  void didChangeMetrics() {
+//    super.didChangeMetrics();
+//    spManager.inWindow(widgetsBinding.window);
+//  }
+//}

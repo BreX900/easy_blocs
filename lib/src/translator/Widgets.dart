@@ -63,23 +63,16 @@ class TranslationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CacheStreamBuilder<Locale>(
-      stream: translatorBloc.outLocale,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData)
-          return Container();
 
-        return FlagView(
-          locale: snapshot.data,
-          assetFolder: assetFolder,
-          size: size,
-          child: InkWell(
-            onTap: () {
-              Scaffold.of(context).openEndDrawer();
-            },
-          ),
-        );
-      },
+    return FlagView(
+      locale: translatorBloc.locale,
+      assetFolder: assetFolder,
+      size: size,
+      child: InkWell(
+        onTap: () {
+          Scaffold.of(context).openEndDrawer();
+        },
+      ),
     );
   }
 }

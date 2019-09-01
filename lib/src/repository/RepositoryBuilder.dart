@@ -1,47 +1,60 @@
-import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
-import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
+import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
+import 'package:easy_blocs/src/rxdart_extension/Data.dart';
+import 'package:easy_blocs/src/rxdart_extension/ObservableBuilder.dart';
+import 'package:easy_blocs/src/skeletons/BlocProvider.dart';
+import 'package:easy_blocs/src/sp/Sp.dart';
+import 'package:easy_blocs/src/sp/SpController.dart';
+import 'package:easy_blocs/src/translator/TranslatorController.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:ui' show Window;
 
 typedef Widget _Builder(BuildContext context, RepositoryData data);
 
-typedef  Future<String> _Worker(BuildContext context, SharedPreferences sharedPreferences);
+typedef Future<String> _Worker(BuildContext context, SharedPreferences sharedPreferences);
 
-typedef RepositoryBlocBase _Creator(SharedPreferences sharedPreferences);
+typedef R _Creator<R extends RepositoryBlocBase>(RepositoryDataCreator data);
 
-
-class RepositoryBuilder<T> extends StatefulWidget {
+class RepositoryBuilder<R extends RepositoryBlocBase> extends StatefulWidget {
   final _Builder builder;
 
-  final _Creator creator;
+  final _Creator<R> creator;
 
   final _Worker worker;
 
   final Widget splashWidget;
 
-  RepositoryBuilder({Key key,
-    this.creator: _repositoryInit,
-    this.worker,
+  RepositoryBuilder({
+    Key key,
+    @required this.creator,
+
+    /// Passagli il RepositoryBlocBase senza ereditare.
+    @required this.worker,
     @required this.builder,
     this.splashWidget,
-  }) : assert(builder != null), assert(creator != null), super(key: key);
+  })  : assert(builder != null),
+        assert(creator != null),
+        super(key: key);
 
   static RepositoryBlocBase _repositoryInit(SharedPreferences sharedPreferences) {
     return RepositoryBlocBase(sharedPreferences: sharedPreferences);
   }
 
   @override
-  _RepositoryBuilderState<T> createState() => _RepositoryBuilderState<T>();
+  _RepositoryBuilderState<R> createState() => _RepositoryBuilderState<R>();
 }
 
-class _RepositoryBuilderState<T> extends State<RepositoryBuilder<T>> {
-
-
+class _RepositoryBuilderState<R extends RepositoryBlocBase> extends State<RepositoryBuilder<R>>
+    with WidgetsBindingObserver, WidgetsBindingStateListener {
   ObservableSubscriber<Data2<Locale, Sp>> _dataSubscriber;
 
+  bool isPerform;
   RepositoryData _data;
+
+  TranslatorSkeleton _translatorSkeleton = TranslatorSkeleton();
+  SpSkeleton _spSkeleton = SpSkeleton();
 
   @override
   void initState() {
@@ -55,45 +68,72 @@ class _RepositoryBuilderState<T> extends State<RepositoryBuilder<T>> {
     super.dispose();
   }
 
-  Future<void> _init(BuildContext context) async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    
-    final repositoryBloc = widget.creator(sharedPreferences);
-    assert(repositoryBloc != null);
-    BlocProvider.init<RepositoryBlocBase>(repositoryBloc);
+  void _init(BuildContext context) async {
+    if (isPerform != null) return;
+    isPerform = true;
 
-    _data = RepositoryData(
-      screen: await widget.worker(context, sharedPreferences),
-      locale: repositoryBloc.locale,
-      sp: repositoryBloc.sp,
-    );
+    final sharedPreferencesWait = SharedPreferences.getInstance();
+    Future(() {
+      _updateWindow(widgetsBinding.window);
 
-    _dataSubscriber.subscribe(Data2.combineLatest(repositoryBloc.outLocale, repositoryBloc.outSp));
+      sharedPreferencesWait.then((sharedPreferences) async {
+        final _repositoryBloc = widget.creator(RepositoryDataCreator(
+          sharedPreferences: sharedPreferences,
+          spSkeleton: _spSkeleton,
+          translatorSkeleton: _translatorSkeleton,
+        ));
+        assert(_repositoryBloc != null);
+        BlocProvider.init<RepositoryBlocBase>(_repositoryBloc);
+        BlocProvider.init<R>(_repositoryBloc);
+
+        final screen = await widget.worker(context, sharedPreferences);
+        await _waitChangeMetrics.future;
+        _data = RepositoryData(
+          screen: screen,
+          locale: _translatorSkeleton.locale,
+          sp: _spSkeleton.sp,
+        );
+
+        _dataSubscriber
+            .subscribe(Data2.combineLatest(_translatorSkeleton.outLocale, _spSkeleton.outSp));
+        isPerform = false;
+      });
+    });
+  }
+
+  Completer<void> _waitChangeMetrics = Completer();
+  Future<void> didChangeMetrics() async {
+    _updateWindow(widgetsBinding.window);
+  }
+
+  void _updateWindow(Window window) {
+    final data = MediaQueryData.fromWindow(window);
+    if (data.size.isEmpty) return;
+    if (!_waitChangeMetrics.isCompleted) _waitChangeMetrics.complete();
+
+    _translatorSkeleton.inDeviceLocale(window.locale);
+    _spSkeleton.inMediaQueryData(data);
   }
 
   void _dataListener(ObservableState<Data2<Locale, Sp>> update) {
-    setState(() => _data = _data.copyWith(
-      locale: update.data.data1,
-      sp: update.data.data2,
-    ));
+    setState(() => _data = _data.copyWith(locale: update.data.data1, sp: update.data.data2));
   }
 
   @override
   Widget build(BuildContext context) {
-
-    if (_data == null) {
+    if (isPerform != false) {
       _init(context);
-      return widget.splashWidget??Container(
-        color: Colors.grey[300],
-        alignment: Alignment.center,
-        child: const CircularProgressIndicator(),
-      );
+      return widget.splashWidget ??
+          Container(
+            color: Colors.grey[300],
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(),
+          );
     }
-    print("BUILD ${_data.sp}");
+
     return widget.builder(context, _data);
   }
 }
-
 
 class RepositoryData {
   final RepositoryBlocBase repositoryBloc;
@@ -104,12 +144,42 @@ class RepositoryData {
 
   RepositoryData({this.repositoryBloc, this.locale, this.sp, this.sharedPreferences, this.screen});
 
-  RepositoryData copyWith({SharedPreferences sharedPreferences, Locale locale, Sp sp, String screen}) {
+  RepositoryData copyWith(
+      {SharedPreferences sharedPreferences, Locale locale, Sp sp, String screen}) {
     return RepositoryData(
-      repositoryBloc: sharedPreferences??this.repositoryBloc,
-      locale: locale??this.locale,
-      sp: sp??this.sp,
-      screen: screen??this.screen,
+      repositoryBloc: sharedPreferences ?? this.repositoryBloc,
+      locale: locale ?? this.locale,
+      sp: sp ?? this.sp,
+      screen: screen ?? this.screen,
     );
   }
+}
+
+class RepositoryDataCreator {
+  final SharedPreferences sharedPreferences;
+  final SpSkeleton spSkeleton;
+  final TranslatorSkeleton translatorSkeleton;
+
+  RepositoryDataCreator({
+    this.sharedPreferences,
+    this.spSkeleton,
+    this.translatorSkeleton,
+  });
+}
+
+mixin WidgetsBindingStateListener<W extends StatefulWidget> on State<W>
+    implements WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  WidgetsBinding get widgetsBinding => WidgetsBinding.instance;
 }

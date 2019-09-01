@@ -67,6 +67,7 @@ class _ButtonFieldShellState extends State<ButtonFieldShell> with FieldStateMixi
   void didChangeDependencies() {
     super.didChangeDependencies();
     _formBone = FormBone.of(context);
+    assert(_formBone != null);
     widget.bone.formBone = _formBone;
   }
 

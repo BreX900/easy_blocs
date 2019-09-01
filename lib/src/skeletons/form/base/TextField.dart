@@ -9,7 +9,6 @@ import 'package:rational/rational.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:easy_blocs/src/skeletons/form/TextInputFormatters.dart';
 
-
 class TextFieldSheet {
   final TextInputType keyboardType;
 
@@ -22,7 +21,8 @@ class TextFieldSheet {
 
   const TextFieldSheet({
     this.keyboardType,
-    this.obscureText: false, this.maxLength,
+    this.obscureText: false,
+    this.maxLength,
     this.inputFormatters,
     this.isEnable,
   });
@@ -30,16 +30,17 @@ class TextFieldSheet {
   TextFieldSheet copyWith({
     FieldError error,
     TextInputType keyboardType,
-    bool obscureText, int maxLength,
+    bool obscureText,
+    int maxLength,
     List<TextInputFormatter> inputFormatters,
     bool isEnable,
   }) {
     return TextFieldSheet(
-      keyboardType: keyboardType??this.keyboardType,
-      obscureText: obscureText??this.obscureText,
-      maxLength: maxLength??this.maxLength,
-      inputFormatters: inputFormatters??this.inputFormatters,
-      isEnable: isEnable??this.isEnable,
+      keyboardType: keyboardType ?? this.keyboardType,
+      obscureText: obscureText ?? this.obscureText,
+      maxLength: maxLength ?? this.maxLength,
+      inputFormatters: inputFormatters ?? this.inputFormatters,
+      isEnable: isEnable ?? this.isEnable,
     );
   }
 }
@@ -51,16 +52,15 @@ abstract class TextFieldBone extends FieldBone<String> {
   Stream<Data2<FieldError, TextFieldSheet>> get outErrorAndSheet;
 }
 
-
 class TextFieldSkeleton extends FieldSkeleton<String> implements TextFieldBone {
   TextFieldSkeleton({
     String seed,
     List<FieldValidator<String>> validators,
     TextFieldSheet sheet: const TextFieldSheet(),
-  }) :
-        _sheetController = BehaviorSubject.seeded(sheet), super(
+  })  : _sheetController = BehaviorSubject.seeded(sheet),
+        super(
           seed: seed,
-          validators: validators??[TextFieldValidator.undefined],
+          validators: validators ?? [TextFieldValidator.undefined],
         );
 
   @override
@@ -76,8 +76,7 @@ class TextFieldSkeleton extends FieldSkeleton<String> implements TextFieldBone {
 
   Stream<Data2<FieldError, TextFieldSheet>> _outErrorAndSheet;
   Stream<Data2<FieldError, TextFieldSheet>> get outErrorAndSheet {
-    if (_outErrorAndSheet == null)
-      _outErrorAndSheet = Data2.combineLatest(outError, outSheet);
+    if (_outErrorAndSheet == null) _outErrorAndSheet = Data2.combineLatest(outError, outSheet);
     return _outErrorAndSheet;
   }
 
@@ -99,19 +98,22 @@ class TextFieldShell extends StatefulWidget implements FieldShell, FocusShell {
   final FieldErrorTranslator nosy;
   final InputDecoration decoration;
 
-  const TextFieldShell({Key key,
+  const TextFieldShell({
+    Key key,
     @required this.bone,
-    this.mapFocusBone, this.focusNode,
-    this.nosy: byPassNoisy, this.decoration: const InputDecoration(),
-  }) :
-        assert(bone != null),
+    this.mapFocusBone,
+    this.focusNode,
+    this.nosy: basicNoisy,
+    this.decoration: const InputDecoration(),
+  })  : assert(bone != null),
         assert(decoration != null),
         super(key: key);
 
   const TextFieldShell.phoneNumber({
     @required TextFieldBone bone,
-    FocuserBone mapFocusBone, FocusNode focusNode,
-    FieldErrorTranslator nosy: byPassNoisy,
+    FocuserBone mapFocusBone,
+    FocusNode focusNode,
+    FieldErrorTranslator nosy: basicNoisy,
     InputDecoration decoration: const TranslationsInputDecoration(
       prefixIcon: Icon(Icons.phone),
       translationsHintText: TranslationsConst(
@@ -120,16 +122,18 @@ class TextFieldShell extends StatefulWidget implements FieldShell, FocusShell {
       ),
     ),
   }) : this(
-    bone: bone, mapFocusBone: mapFocusBone, focusNode: focusNode, nosy: nosy, decoration: decoration,
-
-  );
+          bone: bone,
+          mapFocusBone: mapFocusBone,
+          focusNode: focusNode,
+          nosy: nosy,
+          decoration: decoration,
+        );
 
   @override
   TextFieldShellState createState() => TextFieldShellState();
 }
 
 class TextFieldShellState extends State<TextFieldShell> with FieldStateMixin, FocusShellStateMixin {
-
   final TextEditingController _controller = TextEditingController();
 
   ObservableSubscriber<String> _valueSubscriber;
@@ -165,6 +169,7 @@ class TextFieldShellState extends State<TextFieldShell> with FieldStateMixin, Fo
     _valueSubscriber.subscribe(widget.bone.outValue);
     _dataSubscriber.subscribe(widget.bone.outErrorAndSheet);
   }
+
   void _unsubscribe() {
     _valueSubscriber.unsubscribe();
     _dataSubscriber.unsubscribe();
@@ -173,55 +178,48 @@ class TextFieldShellState extends State<TextFieldShell> with FieldStateMixin, Fo
   void _valueListener(ObservableState<String> update) {
     _controller.text = update.data;
   }
+
   void _dataListener(ObservableState<Data2<FieldError, TextFieldSheet>> update) {
     setState(() => _data = update.data);
   }
 
   @override
   Widget build(BuildContext context) {
-
     return TextField(
       controller: _controller,
       onChanged: widget.bone.inTmpValue,
       focusNode: focusNode,
-
       decoration: widget.decoration.applyDefaults(Theme.of(context).inputDecorationTheme).copyWith(
-        errorText: widget.nosy(_data.data1)?.text,
-      ),
-
+            errorText: widget.nosy(_data.data1)?.text,
+            errorMaxLines: widget.decoration.errorMaxLines ?? 2,
+          ),
       keyboardType: _data.data2.keyboardType,
-
       obscureText: _data.data2.obscureText,
       maxLength: _data.data2.maxLength,
       inputFormatters: _data.data2.inputFormatters,
-
       onSubmitted: (_) => nextFocus(),
     );
   }
 }
 
-
 abstract class TextFieldValidator {
-  static const List<FieldValidator<String>> base =  [
+  static const List<FieldValidator<String>> base = [
     undefined,
   ];
 
   static Future<FieldError> undefined(String value) async {
-    if (value == null || value.isEmpty)
-      return TextFieldError.undefined;
+    if (value == null || value.isEmpty) return TextFieldError.undefined;
     return null;
   }
 }
 
 class TextFieldError {
-  static const undefined = FieldError.undefined;
-  static const invalid = FieldError.invalid;
+  static const undefined = FieldError.$undefined;
+  static const invalid = FieldError.$invalid;
 }
-
 
 typedef String _Writer<V>(V value);
 typedef V _Reader<V>(String value);
-
 
 class TextFieldAdapter<V> extends TextFieldSkeleton {
   final List<FieldValidator<V>> adapterValidators;
@@ -231,24 +229,25 @@ class TextFieldAdapter<V> extends TextFieldSkeleton {
   V get adapterValue => _reader(value);
   void inAdapterValue(V value) => inValue(_writer(value));
 
-  TextFieldAdapter(this._writer, this._reader, {
+  TextFieldAdapter(
+    this._writer,
+    this._reader, {
     int seed,
     List<FieldValidator<V>> adapterValidators,
     List<FieldValidator<String>> textValidators,
     TextFieldSheet sheet: const TextFieldSheet(),
-  }) : this.adapterValidators = adapterValidators??[], super(
-    seed: seed?.toString(),
-    validators: textValidators,
-    sheet: sheet,
-  ) {
+  })  : this.adapterValidators = adapterValidators ?? [],
+        super(
+          seed: seed?.toString(),
+          validators: textValidators,
+          sheet: sheet,
+        ) {
     this.validators.add((text) async {
-      if (this.adapterValidators == null)
-        return null;
+      if (this.adapterValidators == null) return null;
       final value = _reader(text);
       for (var validator in this.adapterValidators) {
         final error = await validator(value);
-        if (error != null)
-          return error;
+        if (error != null) return error;
       }
       return null;
     });
@@ -259,17 +258,19 @@ class TextFieldAdapter<V> extends TextFieldSkeleton {
     List<FieldValidator<int>> adapterValidators,
     List<FieldValidator<String>> textValidators,
   }) {
-
-    return TextFieldAdapter<int>((int value) {
-      return value?.toString();
-    }, (String value) {
-      return int.tryParse(value);
-    }, sheet: sheet.copyWith(
-      inputFormatters: TextInputFormatters.integer,
-      keyboardType: TextInputType.number,
-    ),
-        adapterValidators: adapterValidators??[ValueFieldValidator.undefined],
-        textValidators: textValidators,
+    return TextFieldAdapter<int>(
+      (int value) {
+        return value?.toString();
+      },
+      (String value) {
+        return int.tryParse(value);
+      },
+      sheet: sheet.copyWith(
+        inputFormatters: TextInputFormatters.integer,
+        keyboardType: TextInputType.number,
+      ),
+      adapterValidators: adapterValidators ?? [ValueFieldValidator.undefined],
+      textValidators: textValidators,
     );
   }
 
@@ -278,16 +279,18 @@ class TextFieldAdapter<V> extends TextFieldSkeleton {
     List<FieldValidator<int>> adapterValidators,
     List<FieldValidator<String>> textValidators,
   }) {
-
-    return TextFieldAdapter<Rational>((Rational value) {
-      return value?.toStringAsPrecision(2);
-    }, (String value) {
-      return Rational.parse(value.replaceAll(",", "."));
-    }, sheet: sheet.copyWith(
-      inputFormatters: TextInputFormatters.price,
-      keyboardType: TextInputType.number,
-    ),
-      adapterValidators: adapterValidators??[ValueFieldValidator.undefined],
+    return TextFieldAdapter<Rational>(
+      (Rational value) {
+        return value?.toStringAsPrecision(2);
+      },
+      (String value) {
+        return Rational.parse(value.replaceAll(",", "."));
+      },
+      sheet: sheet.copyWith(
+        inputFormatters: TextInputFormatters.price,
+        keyboardType: TextInputType.number,
+      ),
+      adapterValidators: adapterValidators ?? [ValueFieldValidator.undefined],
       textValidators: textValidators,
     );
   }
@@ -297,17 +300,19 @@ class TextFieldAdapter<V> extends TextFieldSkeleton {
     List<FieldValidator<int>> adapterValidators,
     List<FieldValidator<String>> textValidators,
   }) {
-
-    return TextFieldAdapter<int>((int value) {
-      return value?.toString();
-    }, (String value) {
-      return int.tryParse(value);
-    }, sheet: sheet.copyWith(
-      inputFormatters: TextInputFormatters.phoneNumber,
-      keyboardType: TextInputType.phone,
-      maxLength: 10,
-    ),
-      adapterValidators: adapterValidators??[ValueFieldValidator.undefined],
+    return TextFieldAdapter<int>(
+      (int value) {
+        return value?.toString();
+      },
+      (String value) {
+        return int.tryParse(value);
+      },
+      sheet: sheet.copyWith(
+        inputFormatters: TextInputFormatters.phoneNumber,
+        keyboardType: TextInputType.phone,
+        maxLength: 10,
+      ),
+      adapterValidators: adapterValidators ?? [ValueFieldValidator.undefined],
       textValidators: textValidators,
     );
   }

@@ -8,7 +8,6 @@ import 'package:easy_blocs/src/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-
 class OptionsFieldSheet<V> {
   final List<V> values;
 
@@ -20,16 +19,16 @@ class OptionsFieldSheet<V> {
   }) : assert(isEnable != null);
 
   OptionsFieldSheet<V> copyWith({
-    V tmpValue, List<DropdownMenuItem<V>> items,
+    V tmpValue,
+    List<DropdownMenuItem<V>> items,
     bool isEnable,
   }) {
     return OptionsFieldSheet(
-      values: items??this.values,
-      isEnable: isEnable??this.isEnable,
+      values: items ?? this.values,
+      isEnable: isEnable ?? this.isEnable,
     );
   }
 }
-
 
 abstract class OptionsFieldBone<V> extends FieldBone<V> {
   Stream<OptionsFieldSheet<V>> get outSheet;
@@ -37,15 +36,15 @@ abstract class OptionsFieldBone<V> extends FieldBone<V> {
   Stream<Data2<FieldError, bool>> get outErrorAndIsEmpty;
 }
 
-
 class OptionsFieldSkeleton<V> extends FieldSkeleton<V> implements OptionsFieldBone<V> {
   OptionsFieldSkeleton({
     OptionsFieldSheet<V> sheet: const OptionsFieldSheet(),
     FieldError error,
     List<FieldValidator<V>> validators,
-  }) : assert(sheet != null),
-        this._sheetController = BehaviorSubject.seeded(sheet), super(
-          validators: validators??[OptionsFieldValidator.notEmpty],
+  })  : assert(sheet != null),
+        this._sheetController = BehaviorSubject.seeded(sheet),
+        super(
+          validators: validators ?? [OptionsFieldValidator.notEmpty],
         );
 
   @override
@@ -70,18 +69,20 @@ class OptionsFieldSkeleton<V> extends FieldSkeleton<V> implements OptionsFieldBo
   Stream<Data2<FieldError, bool>> get outErrorAndIsEmpty {
     outTmpValue.listen(print);
     if (_outErrorAndIsEmpty == null)
-      _outErrorAndIsEmpty = Observable.combineLatest2(outError, outTmpValue, _combinerErrorAndIsEmpty)
-          .shareValueSeeded(_combinerErrorAndIsEmpty(error, tmpValue));
+      _outErrorAndIsEmpty =
+          Observable.combineLatest2(outError, outTmpValue, _combinerErrorAndIsEmpty)
+              .shareValueSeeded(_combinerErrorAndIsEmpty(error, tmpValue));
     return _outErrorAndIsEmpty;
   }
+
   Data2<FieldError, bool> _combinerErrorAndIsEmpty(FieldError error, V tmpValue) {
     return Data2(error, tmpValue == null);
   }
 
   @override
-  Future<void> inFieldState(FieldState state) => inSheet(sheet.copyWith(isEnable: state == FieldState.active));
+  Future<void> inFieldState(FieldState state) =>
+      inSheet(sheet.copyWith(isEnable: state == FieldState.active));
 }
-
 
 class OptionsFieldShell<V> extends StatefulWidget implements FieldShell {
   final OptionsFieldBone<V> bone;
@@ -91,38 +92,43 @@ class OptionsFieldShell<V> extends StatefulWidget implements FieldShell {
   final FieldErrorTranslator nosy;
   final InputDecoration decoration;
 
-  const OptionsFieldShell(this.builder, {Key key,
+  const OptionsFieldShell(
+    this.builder, {
+    Key key,
     @required this.bone,
-    this.nosy: byPassNoisy, this.decoration: const TranslationsInputDecoration(
+    this.nosy: basicNoisy,
+    this.decoration: const TranslationsInputDecoration(
       translationsHintText: const TranslationsConst(
         it: "Seleziona un valore",
         en: "Choise a value",
       ),
     ),
-  }) :
-        assert(bone != null),
-        assert(builder != null), super(key: key);
+  })  : assert(bone != null),
+        assert(builder != null),
+        super(key: key);
 
   @override
   _OptionsFieldShellState<V> createState() => _OptionsFieldShellState<V>();
 }
 
 class _OptionsFieldShellState<V> extends State<OptionsFieldShell<V>> with FieldStateMixin {
-
   ObservableSubscriber<Data2<FieldError, bool>> _dataSubscriber;
   Data2<FieldError, bool> _data;
 
   @override
   void initState() {
     super.initState();
-    _dataSubscriber = ObservableSubscriber(_dataListener)..subscribe(widget.bone.outErrorAndIsEmpty);
+    _dataSubscriber = ObservableSubscriber(_dataListener)
+      ..subscribe(widget.bone.outErrorAndIsEmpty);
   }
 
   @override
   void didUpdateWidget(OptionsFieldShell<V> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.bone != oldWidget.bone) {
-      _dataSubscriber..unsubscribe()..subscribe(widget.bone.outErrorAndIsEmpty);
+      _dataSubscriber
+        ..unsubscribe()
+        ..subscribe(widget.bone.outErrorAndIsEmpty);
     }
   }
 
@@ -138,42 +144,40 @@ class _OptionsFieldShellState<V> extends State<OptionsFieldShell<V>> with FieldS
 
   @override
   Widget build(BuildContext context) {
-
     return InputDecorator(
       decoration: widget.decoration.applyDefaults(Theme.of(context).inputDecorationTheme).copyWith(
-        errorText: widget.nosy(_data.data1)?.text,
-      ),
+            errorText: widget.nosy(_data.data1)?.text,
+            errorMaxLines: widget.decoration.errorMaxLines ?? 2,
+          ),
       isEmpty: _data.data2,
       child: DropdownButtonHideUnderline(
-        child: ObservableBuilder<Data2<V, OptionsFieldSheet<V>>>((_, data, state) {
-
-          return DropdownButton<V>(
-            isDense: true,
-            value: data.data1,
-            items: data.data2.values.map((value) {
-
-              return DropdownMenuItem<V>(
-                value: value,
-                child: widget.builder(context, value),
+        child: ObservableBuilder<Data2<V, OptionsFieldSheet<V>>>(
+            builder: (_, data, state) {
+              return DropdownButton<V>(
+                isDense: true,
+                value: data.data1,
+                items: data.data2.values.map((value) {
+                  return DropdownMenuItem<V>(
+                    value: value,
+                    child: widget.builder(context, value),
+                  );
+                }).toList(),
+                onChanged: data.data2.isEnable ? widget.bone.inTmpValue : null,
               );
-            }).toList(),
-            onChanged: data.data2.isEnable ? widget.bone.inTmpValue : null,
-          );
-        }, stream: widget.bone.outTmpValueAndSheet),
+            },
+            stream: widget.bone.outTmpValueAndSheet),
       ),
     );
   }
 }
 
-
 class OptionsFieldValidator {
   static Future<FieldError> notEmpty<V>(V value) async {
-    if (value == null)
-      return OptionsFieldError.undefined;
+    if (value == null) return OptionsFieldError.undefined;
     return null;
   }
 }
 
 class OptionsFieldError {
-  static const undefined = FieldError.undefined;
+  static const undefined = FieldError.$undefined;
 }

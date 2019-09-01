@@ -5,23 +5,23 @@ import 'package:easy_blocs/src/skeletons/form/TextInputFormatters.dart';
 import 'package:easy_blocs/src/skeletons/form/base/TextField.dart';
 import 'package:flutter/material.dart';
 
-
 abstract class EmailFieldBone extends TextFieldBone {}
 
-
 class EmailFieldSkeleton extends TextFieldSkeleton implements EmailFieldBone {
-
   EmailFieldSkeleton({
-    String value, TextFieldSheet sheet: const TextFieldSheet(),
+    String value,
+    TextFieldSheet sheet: const TextFieldSheet(),
     List<FieldValidator<String>> validators,
   }) : super(
-    seed: value, sheet: sheet.copyWith(inputFormatters: TextInputFormatters.email),
-    validators: validators??EmailFieldValidator.base,
-  );
+          seed: value,
+          sheet: sheet.copyWith(inputFormatters: TextInputFormatters.email),
+          validators: validators ?? EmailFieldValidator.base,
+        );
 
   void inSignError(EmailSignError error) {
     inError(_convertSignError(error));
   }
+
   FieldError _convertSignError(EmailSignError error) {
     switch (error) {
       case EmailSignError.INVALID:
@@ -38,20 +38,24 @@ class EmailFieldSkeleton extends TextFieldSkeleton implements EmailFieldBone {
   }
 }
 
-
 class EmailFieldShell extends TextFieldShell {
-  EmailFieldShell({Key key,
+  EmailFieldShell({
+    Key key,
     @required EmailFieldBone bone,
-    FocuserBone mapFocusBone, FocusNode focusNode,
-    FieldErrorTranslator nosy: noisy, InputDecoration decoration,
-  }) : super(key: key,
-    bone: bone,
-    mapFocusBone: mapFocusBone, focusNode: focusNode,
-    nosy: nosy, decoration: decoration??decorator(bone),
-  );
+    FocuserBone mapFocusBone,
+    FocusNode focusNode,
+    FieldErrorTranslator nosy: noisy,
+    InputDecoration decoration,
+  }) : super(
+          key: key,
+          bone: bone,
+          mapFocusBone: mapFocusBone,
+          focusNode: focusNode,
+          nosy: nosy,
+          decoration: decoration ?? decorator(bone),
+        );
 
-  static InputDecoration decorator(EmailFieldBone fieldBone) =>
-      const TranslationsInputDecoration(
+  static InputDecoration decorator(EmailFieldBone fieldBone) => const TranslationsInputDecoration(
         prefixIcon: const Icon(Icons.email),
         translationsHintText: TranslationsConst(
           en: "E-mail",
@@ -67,35 +71,33 @@ class EmailFieldShell extends TextFieldShell {
       case EmailFieldError.invalid:
         return const TranslationsConst(
             it: "L'indirizzo email non è in un formato consono.",
-            en: "The email address is badly formatted."
-        );
+            en: "The email address is badly formatted.");
       case EmailFieldError.userDisable:
         return const TranslationsConst(
           it: "The user account has been disabled by an administrator.",
           en: "L'account utente è stato disabilitato da un amministratore.",
         );
       default:
-        return byPassNoisy(error);
+        return basicNoisy(error);
     }
   }
 }
 
 abstract class EmailFieldValidator {
   static List<FieldValidator<String>> get base => [
-    TextFieldValidator.undefined,
-    email,
-  ];
+        TextFieldValidator.undefined,
+        email,
+      ];
 
   static Future<FieldError> email(String value) async {
-    if (value.length < 8)
-      return EmailFieldError.short;
+    if (value.length < 8) return EmailFieldError.short;
     return null;
   }
 }
 
 class EmailFieldError {
   static const FieldError short = FieldError("SHORT");
-  static const FieldError invalid = FieldError.invalid;
+  static const FieldError invalid = FieldError.$invalid;
   static const FieldError userNotFound = FieldError("USER_NOT_FOUND");
   static const FieldError userDisable = FieldError("USER_DISABLE");
   static const FieldError wrong = FieldError("WRONG");

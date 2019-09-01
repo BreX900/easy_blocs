@@ -6,28 +6,39 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 
-
 class Pocket {
   final HashMap<StreamController, TinyPocket> _pockets = HashMap();
 
-  void put(StreamController controller, {void onListen(), void onCancel(),}) {
+  void put(
+    StreamController controller, {
+    void onListen(),
+    void onCancel(),
+  }) {
     assert(controller != null);
     _pockets[controller] = TinyPocket(controller, onListen: onListen, onCancel: onCancel);
   }
 
-  TinyPocket operator[](StreamController controller) {
+  TinyPocket operator [](StreamController controller) {
     assert(controller != null);
     return _pockets[controller];
   }
 
-  TinyPocket putAndGet(StreamController controller, {void onListen(), void onCancel(),}) {
+  TinyPocket putAndGet(
+    StreamController controller, {
+    void onListen(),
+    void onCancel(),
+  }) {
     assert(controller != null);
     final pocket = TinyPocket(controller, onListen: onListen, onCancel: onCancel);
     _pockets[controller] = pocket;
     return pocket;
   }
 
-  TinyPocket putOrGet(StreamController controller, {void onListen(), void onCancel(),}) {
+  TinyPocket putOrGet(
+    StreamController controller, {
+    void onListen(),
+    void onCancel(),
+  }) {
     assert(controller != null);
     if (!_pockets.containsKey(controller)) {
       put(controller, onListen: onListen, onCancel: onCancel);
@@ -35,7 +46,6 @@ class Pocket {
     return this[controller];
   }
 }
-
 
 mixin PocketWriters {
   final HashMap<String, StreamSubscription> _keyWriters = HashMap();
@@ -45,20 +55,20 @@ mixin PocketWriters {
   }
 
   void insert<K>(StreamSubscription<K> subscription, {String key}) {
-    key = key??K.toString();
+    key = key ?? K.toString();
     assert(_keyWriters[key] != null);
     _keyWriters[key] = subscription;
   }
 
   void put<K>(StreamSubscription<K> subscription, {String key}) {
-    key = key??K.toString();
+    key = key ?? K.toString();
     _keyWriters[key]?.cancel();
     _keyWriters[key] = subscription;
   }
 
-  void pop<K>({String key}) => _keyWriters[key??K.toString()]?.cancel();
+  void pop<K>({String key}) => _keyWriters[key ?? K.toString()]?.cancel();
 
-  void remove<K>({String key}) => _keyWriters[key??K.toString()].cancel();
+  void remove<K>({String key}) => _keyWriters[key ?? K.toString()].cancel();
 }
 
 class TinyPocket<T> with PocketWriters {
@@ -66,67 +76,89 @@ class TinyPocket<T> with PocketWriters {
   final List<ValueGetter<StreamSubscription>> _writers = [];
   List<StreamSubscription> _subscriptions;
 
-
-  TinyPocket(this._controller, {
-    void onListen(), void onCancel(),
+  TinyPocket(
+    this._controller, {
+    void onListen(),
+    void onCancel(),
   }) : assert(_controller != null) {
     _controller.onListen = () {
+      if (_subscriptions != null)
+        return;
       if (onListen != null) onListen();
       _subscriptions = _writers.map((source) => source()).toList();
     };
     _controller.onCancel = () {
       if (onCancel != null) onCancel();
       //_subscription?.cancel();
-      _subscriptions.forEach((sub) => sub.cancel());
+      _subscriptions?.forEach((sub) => sub.cancel());
       super.dispose();
     };
   }
 
   void addWriter(ValueGetter<StreamSubscription> writer) {
-    assert(writer != null);
-    _writers.add(writer);
+    if (writer != null) _writers.add(writer);
   }
 
   void catchSource<E>({
-    @required ValueGetter<Stream<E>> source, @required void onData(E event),
-    Function onError, void onDone(), bool cancelOnError: false,
+    @required ValueGetter<Stream<E>> source,
+    @required void onData(E event),
+    Function onError,
+    void onDone(),
+    bool cancelOnError: false,
   }) {
     assert(source != null && onData != null);
 
-    addWriter(() => source().listen(onData,
-      onError: onError, onDone: onDone, cancelOnError: cancelOnError,
-    ));
+    addWriter(() => source()?.listen(
+          onData,
+          onError: onError,
+          onDone: onDone,
+          cancelOnError: cancelOnError,
+        ));
   }
 
-  void catchStream<E>({String key,
-    @required Stream<E> stream, @required void onData(E event),
-    Function onError, void onDone(), bool cancelOnError: false,
+  void catchStream<E>({
+    String key,
+    @required Stream<E> stream,
+    @required void onData(E event),
+    Function onError,
+    void onDone(),
+    bool cancelOnError: false,
   }) {
     assert(stream != null && onData != null);
-    put<E>(stream.listen(onData,
-      onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+    put<E>(stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
     ));
   }
 
-  void pipeSource(ValueGetter<FutureOr<Stream<T>>> source, {
-    Function onError, void onDone(), bool cancelOnError
-  }) {
+  void pipeSource(ValueGetter<FutureOr<Stream<T>>> source,
+      {Function onError, void onDone(), bool cancelOnError}) {
     catchSource<T>(
       source: source,
-      onData: _controller.add, onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+      onData: _controller.add,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
     );
   }
 
-  void pipeStream(Stream<T> stream, {
-    Function onError, void onDone(), bool cancelOnError: false,
+  void pipeStream(
+    Stream<T> stream, {
+    Function onError,
+    void onDone(),
+    bool cancelOnError: false,
   }) {
     catchStream<T>(
-      stream: stream, onData: _controller.add,
-      onError: onError, onDone: onDone, cancelOnError: cancelOnError,
+      stream: stream,
+      onData: _controller.add,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
     );
   }
 }
-
 
 //class _test extends StatefulWidget {
 //  final MapFocusBone bone;
@@ -185,7 +217,6 @@ class TinyPocket<T> with PocketWriters {
 //  }
 //}
 
-
 mixin PluginManagerMixin<WidgetType extends StatefulWidget> on State<WidgetType> {
   final List<Plugin> _plugins = [];
   final List<PluginManager> _byInherited = [], _byWidget = [];
@@ -228,7 +259,6 @@ mixin PluginManagerMixin<WidgetType extends StatefulWidget> on State<WidgetType>
   }
 }
 
-
 class PluginManager<V> {
   final ValueToOne<StatefulWidget, V> _getter;
   final bool isDependencies;
@@ -253,7 +283,7 @@ class PluginManager<V> {
         value = newValue;
         plugins.forEach((plugin) => plugin.init(value));
       }
-    } catch(exc) {}
+    } catch (exc) {}
   }
 
   void dispose() => plugins.forEach((plugin) => plugin.close(value));
@@ -263,6 +293,7 @@ abstract class Plugin<V> {
   void init(V event);
   void close(V event);
 }
+
 class BasicPlugin<V> extends Plugin<V> {
   final ValueSetter<V> _init, _close;
 
@@ -273,6 +304,7 @@ class BasicPlugin<V> extends Plugin<V> {
   @override
   void close(V event) => _close(event);
 }
+
 class ExtendedPlugin2<F, S> {
   final PluginManager<F> _plugin1;
   final PluginManager<S> _plugin2;
@@ -281,7 +313,8 @@ class ExtendedPlugin2<F, S> {
   S _value2;
   bool _isInit = false, _isClose = false;
 
-  ExtendedPlugin2(this._plugin1, this._plugin2, void init(F value1, S value2), void close(F value1, S value2)) {
+  ExtendedPlugin2(
+      this._plugin1, this._plugin2, void init(F value1, S value2), void close(F value1, S value2)) {
     _plugin1.plugins.add(BasicPlugin((value) {
       _value1 = value;
 
@@ -297,6 +330,7 @@ class ExtendedPlugin2<F, S> {
     }));
   }
 }
+
 class ListenerPlugin extends Plugin<Listenable> {
   final VoidCallback _listener;
 
@@ -305,6 +339,7 @@ class ListenerPlugin extends Plugin<Listenable> {
   void init(Listenable listenable) {
     listenable.addListener(_listener);
   }
+
   void close(Listenable listenable) {
     listenable.removeListener(_listener);
   }
@@ -319,6 +354,7 @@ class SubscriberPlugin extends Plugin {
   void init(listenable) {
     _subscription = _subscriber();
   }
+
   void close(listenable) {
     _subscription.cancel();
   }
@@ -353,11 +389,11 @@ class ObservablePlugin<V> extends Plugin {
     _data = stream is ValueObservable ? (stream as ValueObservable).value : null;
     _state = null;
   }
+
   void close(listenable) {
     _subscription.cancel();
   }
 }
-
 
 //class TinyPocket<T> extends PocketKey {
 //  final StreamController<T> _controller;
@@ -427,7 +463,6 @@ class ObservablePlugin<V> extends Plugin {
 //
 //}
 
-
 //class TinyPocketBase<V> {
 //  StreamSubscription<V> _subscription;
 //
@@ -458,8 +493,6 @@ class ObservablePlugin<V> extends Plugin {
 //    _pockets.values.forEach((subscription) => subscription.dispose());
 //  }
 //}
-
-
 
 //class StatePocket<V> {
 //  final ValueGetter<V> initialization;

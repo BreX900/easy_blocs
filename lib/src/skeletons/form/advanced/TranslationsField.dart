@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:easy_blocs/easy_blocs.dart';
@@ -7,21 +6,22 @@ import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-
 class TranslationsFieldSheet {
   final bool isEnable;
 
   const TranslationsFieldSheet({
     this.isEnable: true,
-  }): assert(isEnable != null);
+  }) : assert(isEnable != null);
 
-  TranslationsFieldSheet copyWith({FieldError error, bool isEnable,}) {
+  TranslationsFieldSheet copyWith({
+    FieldError error,
+    bool isEnable,
+  }) {
     return TranslationsFieldSheet(
-      isEnable: isEnable??this.isEnable,
+      isEnable: isEnable ?? this.isEnable,
     );
   }
 }
-
 
 class TranslationsDecoration {
   final InputDecoration decoration;
@@ -31,35 +31,35 @@ class TranslationsDecoration {
 
   const TranslationsDecoration({
     this.decoration: const InputDecoration(),
-    this.maxLines: 1, this.minLines: 1,
-
+    this.maxLines: 1,
+    this.minLines: 1,
     this.padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
   });
 
-  TranslationsDecoration copyWith({InputDecoration decoration, bool isEnable, int maxLines, int minLines}) {
+  TranslationsDecoration copyWith(
+      {InputDecoration decoration, bool isEnable, int maxLines, int minLines}) {
     return TranslationsDecoration(
       decoration: decoration ?? this.decoration,
-      maxLines: maxLines??this.maxLines,
-      minLines : minLines ?? this.minLines,
+      maxLines: maxLines ?? this.maxLines,
+      minLines: minLines ?? this.minLines,
     );
   }
 }
-
 
 abstract class TranslationsFieldBone extends FieldBone<Translations> {
   Stream<TranslationsFieldSheet> get outSheet;
   Stream<Data2<TranslationsFieldSheet, FieldError>> get outSheetAndError;
 }
 
-
-class TranslationsFieldSkeleton extends FieldSkeleton<Translations> implements TranslationsFieldBone {
+class TranslationsFieldSkeleton extends FieldSkeleton<Translations>
+    implements TranslationsFieldBone {
   TranslationsFieldSkeleton({
     Translations seed,
     List<FieldValidator<Translations>> validators,
-  }): super(
-    seed: seed,
-    validators: validators??TranslationsFieldValidator.base,
-  );
+  }) : super(
+          seed: seed,
+          validators: validators ?? TranslationsFieldValidator.base,
+        );
 
   @override
   void dispose() {
@@ -67,22 +67,22 @@ class TranslationsFieldSkeleton extends FieldSkeleton<Translations> implements T
     super.dispose();
   }
 
-  BehaviorSubject<TranslationsFieldSheet> _sheetController = BehaviorSubject.seeded(const TranslationsFieldSheet());
+  BehaviorSubject<TranslationsFieldSheet> _sheetController =
+      BehaviorSubject.seeded(const TranslationsFieldSheet());
   Stream<TranslationsFieldSheet> get outSheet => _sheetController;
   TranslationsFieldSheet get sheet => _sheetController.value;
   void inSheet(TranslationsFieldSheet sheet) => _sheetController.add(sheet);
 
   Stream<Data2<TranslationsFieldSheet, FieldError>> _outSheetAndError;
   Stream<Data2<TranslationsFieldSheet, FieldError>> get outSheetAndError {
-    if (_outSheetAndError == null)
-      _outSheetAndError = Data2.combineLatest(outSheet, outError);
+    if (_outSheetAndError == null) _outSheetAndError = Data2.combineLatest(outSheet, outError);
     return _outSheetAndError;
   }
 
   @override
-  void inFieldState(FieldState state) => inSheet(sheet.copyWith(isEnable: state == FieldState.active));
+  void inFieldState(FieldState state) =>
+      inSheet(sheet.copyWith(isEnable: state == FieldState.active));
 }
-
 
 class TranslationsFieldShell extends StatefulWidget implements FieldShell, FocusShell {
   final TranslationsFieldBone bone;
@@ -97,14 +97,15 @@ class TranslationsFieldShell extends StatefulWidget implements FieldShell, Focus
 
   final TranslationsDecoration decoration;
 
-  const TranslationsFieldShell({Key key,
+  const TranslationsFieldShell({
+    Key key,
     @required this.bone,
-    this.mapFocusBone, this.focusNode,
+    this.mapFocusBone,
+    this.focusNode,
     this.locales,
-    this.nosy: byPassNoisy,
+    this.nosy: basicNoisy,
     this.decoration: const TranslationsDecoration(),
-  }) :
-        assert(bone != null),
+  })  : assert(bone != null),
         super(key: key);
 
   @override
@@ -123,10 +124,12 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
 
   @override
   void initState() {
-    _locales = widget.locales??repositoryBloc.supportedLocales;
+    _locales = widget.locales ?? repositoryBloc.supportedLocales;
     _tabController = TabController(
-      length: _locales.length, vsync: this,
-      initialIndex: _locales.indexWhere((lc) => lc.languageCode == repositoryBloc.locale.languageCode,
+      length: _locales.length,
+      vsync: this,
+      initialIndex: _locales.indexWhere(
+        (lc) => lc.languageCode == repositoryBloc.locale.languageCode,
       ),
     );
     _textControllers = _locales.asMap().map((_, lc) {
@@ -140,7 +143,9 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
   void didUpdateWidget(TranslationsFieldShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.bone != oldWidget.bone) {
-      _valueSubscriber..unsubscribe()..subscribe(widget.bone.outValue);
+      _valueSubscriber
+        ..unsubscribe()
+        ..subscribe(widget.bone.outValue);
     }
   }
 
@@ -153,10 +158,9 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
   }
 
   void _valueListener(ObservableState<Translations> update) {
-    (update.data??const TranslationsConst()).toJson().forEach((lc, text) {
+    (update.data ?? const TranslationsConst()).toJson().forEach((lc, text) {
       final textController = _textControllers[lc];
-      if (textController == null || textController.text == text)
-        return;
+      if (textController == null || textController.text == text) return;
       textController.text = text;
     });
   }
@@ -164,12 +168,12 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
   Translations _toTranslations() {
     return TranslationsMap.map(_textControllers.map((lc, textController) {
       return MapEntry(lc, textController.text);
-    })..removeWhere((lc, text) => text == null || text.isEmpty));
+    })
+      ..removeWhere((lc, text) => text == null || text.isEmpty));
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -177,7 +181,6 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
           controller: _tabController,
           isScrollable: true,
           tabs: _locales.map((lc) {
-
             return FlagView(
               locale: lc,
               child: InkWell(),
@@ -190,20 +193,22 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
             final languageCode = _locales[index].languageCode;
             final textController = _textControllers[languageCode];
 
-            return ObservableBuilder<Data2<TranslationsFieldSheet, FieldError>>((_, data, state) {
-
-              return TextField(
-                controller: textController,
-                onChanged: data.data1.isEnable ? (text) {
-                  widget.bone.inTmpValue(_toTranslations());
-                } : null,
-                decoration: widget.decoration.decoration.copyWith(
-                  errorText: widget.nosy(data.data2)?.text,
-                ),
-                maxLines: widget.decoration.maxLines,
-                minLines: widget.decoration.maxLines,
-              );
-            }, stream: widget.bone.outSheetAndError);
+            return ObservableBuilder<Data2<TranslationsFieldSheet, FieldError>>(
+                builder: (_, data, state) {
+                  return TextField(
+                    controller: textController,
+                    onChanged: data.data1.isEnable
+                        ? (text) => widget.bone.inTmpValue(_toTranslations())
+                        : null,
+                    decoration: widget.decoration.decoration.copyWith(
+                      errorText: widget.nosy(data.data2)?.text,
+                      errorMaxLines: widget.decoration.decoration.errorMaxLines ?? 2,
+                    ),
+                    maxLines: widget.decoration.maxLines,
+                    minLines: widget.decoration.maxLines,
+                  );
+                },
+                stream: widget.bone.outSheetAndError);
           },
         ),
       ],
@@ -211,20 +216,17 @@ class TranslationsFieldShellState extends State<TranslationsFieldShell>
   }
 }
 
-
 class TranslationsFieldValidator {
   static List<FieldValidator<Translations>> get base => [validator];
 
   static Future<FieldError> validator(Translations translations) async {
-    if (translations == null || translations.isUndefined)
-      return TranslationsFieldError.undefined;
+    if (translations == null || translations.isUndefined) return TranslationsFieldError.undefined;
     return null;
   }
 }
 
-
 class TranslationsFieldError {
-  static const FieldError undefined = FieldError.undefined;
+  static const FieldError undefined = FieldError.$undefined;
 }
 
 //class TranslationsFieldShell<B extends TranslationsFieldBone>
@@ -291,10 +293,6 @@ class TranslationsFieldError {
 //
 //  final TabController _controller = TabController();
 //}
-
-
-
-
 
 //class TranslationsFieldSheet extends FieldSheet<Translations> {
 //  final TextInputType keyboardType;

@@ -1,15 +1,14 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-
-
-
 typedef bool ObservableComparator<V>(ObservableState<V> bef, ObservableState<V> aft);
-class ObservableSubscriber<V>  {
+
+class ObservableSubscriber<V> {
   final ValueChanged<ObservableState<V>> onChanged;
 
   StreamSubscription<V> _subscription;
@@ -22,25 +21,20 @@ class ObservableSubscriber<V>  {
 
   ObservableSubscriber(this.onChanged);
 
-  void subscribe(Stream<V> stream, {V initialData, ObservableComparator<V> comparator: dataComparator}) {
+  void subscribe(Stream<V> stream,
+      {V initialData, ObservableComparator<V> comparator: dataComparator}) {
     assert(stream != null && comparator != null);
     _subscription = stream.listen((V data) {
       final newUpdate = ActiveState<V>(data: data);
-      if (!comparator(_state, newUpdate))
-        _setState = newUpdate;
-
+      if (!comparator(_state, newUpdate)) _setState = newUpdate;
     }, onError: (Object error) {
       final newUpdate = ErrorState<V>(error: error);
-      if (!comparator(_state, newUpdate))
-        _setState = newUpdate;
-
+      if (!comparator(_state, newUpdate)) _setState = newUpdate;
     }, onDone: () {
       _setState = DoneState<V>(data: _state.data, error: _state.error);
-
     });
-    _setState = WaitingState<V>(data: stream is ValueObservable<V>
-        ? stream.value??initialData
-        : initialData);
+    _setState = WaitingState<V>(
+        data: stream is ValueObservable<V> ? stream.value ?? initialData : initialData);
   }
 
   void unsubscribe() {
@@ -51,20 +45,22 @@ class ObservableSubscriber<V>  {
   static bool dataComparator(ObservableState bef, ObservableState aft) {
     return bef.data == aft.data;
   }
+
   static bool passComparator(ObservableState bef, ObservableState aft) {
     return false;
   }
+
   static bool dataAndStateComparator(ObservableState bef, ObservableState aft) {
     return bef.data == aft.data && bef.runtimeType == aft.runtimeType;
   }
 }
 
-
 abstract class ObservableListener<V> implements StatefulWidget {
   Stream<V> get stream;
 }
 
-mixin ObservableListenerStateMixin<WidgetType extends ObservableListener<V>, V> on State<WidgetType> {
+mixin ObservableListenerStateMixin<WidgetType extends ObservableListener<V>, V>
+    on State<WidgetType> {
   ObservableSubscriber<V> _subscriber;
 
   final V initialData = null;
@@ -103,13 +99,13 @@ typedef Widget ObservableStateBuilder<V>(BuildContext context, ObservableState<V
 typedef Widget ObservableValueBuilder<V>(BuildContext context, V value, ObservableState<V> state);
 
 class ObservableBuilder<V> extends StatefulWidget implements ObservableListener<V> {
-
-  ObservableBuilder(this.builder, {
+  ObservableBuilder({
     Key key,
     this.initialData,
     @required this.stream,
+    @required this.builder,
     this.comparator: ObservableSubscriber.dataComparator,
-  }) : assert(builder != null),
+  })  : assert(builder != null),
         assert(stream != null),
         super(key: key);
 
@@ -125,7 +121,8 @@ class ObservableBuilder<V> extends StatefulWidget implements ObservableListener<
   _ObservableBuilderState<V> createState() => _ObservableBuilderState<V>();
 }
 
-class _ObservableBuilderState<V> extends State<ObservableBuilder<V>> with ObservableListenerStateMixin<ObservableBuilder<V>, V> {
+class _ObservableBuilderState<V> extends State<ObservableBuilder<V>>
+    with ObservableListenerStateMixin<ObservableBuilder<V>, V> {
   ObservableState<V> _state;
 
   @override
@@ -144,17 +141,19 @@ class _ObservableBuilderState<V> extends State<ObservableBuilder<V>> with Observ
   Widget build(BuildContext context) => widget.builder(context, _state.data, _state);
 }
 
-typedef _ListObservableBuilder<V>(BuildContext context, IndexedWidgetBuilder itemBuilder, ObservableState<List<V>> state);
+typedef _ListObservableBuilder<V>(
+    BuildContext context, IndexedWidgetBuilder itemBuilder, ObservableState<List<V>> state);
 
 class ObservableListBuilder<V> extends StatefulWidget {
   final _ListObservableBuilder<V> builder;
   final ObservableValueBuilder<V> itemBuilder;
   final Stream<List<V>> stream;
 
-  const ObservableListBuilder({Key key,
-    this.stream,
-    this.builder,
-    this.itemBuilder,
+  const ObservableListBuilder({
+    Key key,
+    @required this.stream,
+    @required this.builder,
+    @required this.itemBuilder,
   }) : super(key: key);
 
   @override
@@ -190,10 +189,9 @@ class _ObservableListBuilderState<V> extends State<ObservableListBuilder<V>> {
     super.dispose();
   }
 
-  void _initListeners()  {
+  void _initListeners() {
     _subscriber.subscribe(widget.stream, comparator: (bef, aft) {
-      print("COMPARATOR");
-      return bef.data.length == aft.data.length;
+      return bef.data?.length == aft.data.length;
     });
     _distinctStream = widget.stream.distinct((bef, aft) {
       return bef?.length != aft?.length;
@@ -201,26 +199,24 @@ class _ObservableListBuilderState<V> extends State<ObservableListBuilder<V>> {
   }
 
   void _listListener(ObservableState<List<V>> state) {
-    print("UPDATE ---------------------------------------------------");
     setState(() => _state = state);
   }
 
   Widget _itemBuilder(BuildContext context, int index) {
-    return ObservableBuilder<V>((_context, value, state) {
-      return widget.itemBuilder(_context, value, state);
-    },
-      stream:  _distinctStream.map((items) => items[index]),
+    return ObservableBuilder<V>(
+      stream: _distinctStream.map((items) => items[index]),
       initialData: _state.data[index],
+      builder: (_context, value, state) {
+        return widget.itemBuilder(_context, value, state);
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-
     return widget.builder(context, _itemBuilder, _state);
   }
 }
-
 
 abstract class ObservableState<D> {
   final D data;
@@ -244,6 +240,7 @@ abstract class ObservableState<D> {
   @override
   String toString() => "ObservableState()";
 }
+
 class WaitingState<D> extends ObservableState<D> with _WaitingWidgets {
   const WaitingState({D data, Object error}) : super(data: data, error: error);
   @override
@@ -253,6 +250,7 @@ class WaitingState<D> extends ObservableState<D> with _WaitingWidgets {
   @override
   String toString() => "WaitingState()";
 }
+
 class ActiveState<D> extends ObservableState<D> with _WaitingWidgets, _ErrorWidgets {
   const ActiveState({D data, Object error}) : super(data: data, error: error);
   @override
@@ -262,6 +260,7 @@ class ActiveState<D> extends ObservableState<D> with _WaitingWidgets, _ErrorWidg
   @override
   String toString() => "ActiveState()";
 }
+
 class DoneState<D> extends ObservableState<D> with _WaitingWidgets, _ErrorWidgets {
   const DoneState({D data, Object error}) : super(data: data, error: error);
   @override
@@ -282,7 +281,6 @@ class ErrorState<D> extends ObservableState<D> with _ErrorWidgets {
   String toString() => "DoneState()";
 }
 
-
 mixin _WaitingWidgets<D> on ObservableState<D> {
   Widget toWaitWidget() {
     return const Center(
@@ -292,11 +290,12 @@ mixin _WaitingWidgets<D> on ObservableState<D> {
       ),
     );
   }
+
   Widget toWaitSliver() {
     return const SliverPadding(
       padding: const EdgeInsets.all(8.0),
       sliver: const SliverToBoxAdapter(
-        child: Center(child: const CircularProgressIndicator()),
+        child: const CircularProgressIndicator(),
       ),
     );
   }
@@ -311,27 +310,16 @@ mixin _ErrorWidgets<D> on ObservableState<D> {
       ),
     );
   }
+
   Widget toErrorSliver() {
     return SliverPadding(
       padding: const EdgeInsets.all(8.0),
       sliver: SliverToBoxAdapter(
-        child: Center(child: Text("!!! ERROR !!!\n$error")),
+        child: Text("!!! ERROR !!!\n$error"),
       ),
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 //abstract class Controller {
 //  void close();
@@ -358,7 +346,6 @@ mixin _ErrorWidgets<D> on ObservableState<D> {
 //    return controller;
 //  }
 //}
-
 
 //typedef Widget _BoneBuilder<B extends Bone, V>(
 //    BuildContext context, B bone, V value, ObservableState state);

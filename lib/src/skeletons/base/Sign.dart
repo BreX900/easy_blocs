@@ -2,45 +2,54 @@ import 'package:easy_blocs/easy_blocs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
-
-enum EmailSignError {/// Delete error in stream [null]
+enum EmailSignError {
+  /// Delete error in stream [null]
   /// The email address is badly formatted.
-  INVALID, /// [ERROR_INVALID_EMAIL]
+  INVALID,
+
+  /// [ERROR_INVALID_EMAIL]
   /// There is no user record corresponding to this identifier. The user may have been deleted.
-  USER_NOT_FOUND, /// [ERROR_USER_NOT_FOUND]
+  USER_NOT_FOUND,
+
+  /// [ERROR_USER_NOT_FOUND]
   /// The user account has been disabled by an administrator.
-  USER_DISABLE, /// [ERROR_USER_DISABLED]
+  USER_DISABLE,
+
+  /// [ERROR_USER_DISABLED]
   /// Current email already use
-  ALREADY_IN_USE, /// [ERROR_EMAIL_ALREADY_IN_USE]
+  ALREADY_IN_USE,
+
+  /// [ERROR_EMAIL_ALREADY_IN_USE]
 }
-enum PasswordSignError {/// Delete error in stream [null]
+enum PasswordSignError {
+  /// Delete error in stream [null]
   /// Must have at least 8 characters, a number, a symbol, a lowercase letter and a capital letter
   INVALID,
+
   /// Wrong password
   WRONG,
+
   /// It is not the same as the previous password
   NOT_SAME,
 }
 
-
-Future<bool> secureSignError<T>(Future future, {
-  void adderEmailError(EmailSignError error), adderPasswordError(PasswordSignError error),
+Future<bool> secureSignError<T>(
+  Future<T> future, {
+  void adderEmailError(EmailSignError error),
+  adderPasswordError(PasswordSignError error),
 }) async {
   try {
     await future;
     return true;
-  } on EmailSignError catch(error) {
+  } on EmailSignError catch (error) {
     adderEmailError(error);
-  } on PasswordSignError catch(error) {
+  } on PasswordSignError catch (error) {
     adderPasswordError(error);
   }
   return false;
 }
 
-
-abstract class UserSkeletonBase<U extends ModelBase> extends Skeleton implements UserBoneBase<U> {
-
-}
+abstract class UserSkeletonBase<U extends ModelBase> extends Skeleton implements UserBoneBase<U> {}
 
 abstract class UserBoneBase<U extends ModelBase> extends Bone {
   Stream<U> get outUser;
@@ -49,7 +58,6 @@ abstract class UserBoneBase<U extends ModelBase> extends Bone {
   Future<void> inSignUpWithEmailAndPassword({@required String email, @required String password});
   Future<U> waitRegistrationLv(int registrationLv);
 }
-
 
 abstract class SignInBone extends Bone {
   EmailFieldBone get emailFieldBone;
@@ -84,26 +92,16 @@ class SignInSkeleton<U extends ModelBase> extends Skeleton implements SignInBone
 
   Future<ButtonState> submit() async {
     assert(userBone != null);
-    try {
-      await userBone.inSignInWithEmailAndPassword(
-        email: _emailFieldSkeleton.value,
-        password: _passwordFieldSkeleton.value,
-      );
-      secureSignError(userBone.inSignInWithEmailAndPassword(
+    final res = await secureSignError(
+      userBone.inSignInWithEmailAndPassword(
         email: _emailFieldSkeleton.value,
         password: _passwordFieldSkeleton.value,
       ),
-        adderEmailError: _emailFieldSkeleton.inSignError,
-        adderPasswordError: _passwordFieldSkeleton.inSignError,
-      );
-      onResult(CompletedEvent([await userBone.waitRegistrationLv(0)]));
-    } catch(exc) {
-      switch (exc) {
-
-      }
-      onResult(exc);
-      return ButtonState.enabled;
-    }
+      adderEmailError: _emailFieldSkeleton.inSignError,
+      adderPasswordError: _passwordFieldSkeleton.inSignError,
+    );
+    if (!res) return ButtonState.enabled;
+    onResult(CompletedEvent([await userBone.waitRegistrationLv(0)]));
     return ButtonState.disabled;
   }
 }
@@ -115,8 +113,6 @@ mixin SingInBlocMixer on BlocBase implements SignInBone {
   PasswordFieldBone get passwordFieldBone => signInBone.passwordFieldBone;
   ButtonFieldBone get buttonFieldBone => signInBone.buttonFieldBone;
 }
-
-
 
 abstract class SignUpBone extends Bone {
   EmailFieldBone get emailFieldBone;
@@ -158,16 +154,16 @@ class SignUpSkeleton<U extends ModelBase> extends Skeleton implements SignUpBone
 
   Future<ButtonState> submit() async {
     assert(userBone != null);
-    try {
-      await userBone.inSignUpWithEmailAndPassword(
+    final res = await secureSignError(
+      userBone.inSignUpWithEmailAndPassword(
         email: _emailFieldSkeleton.value,
         password: _passwordFieldSkeleton.value,
-      );
-      onResult(CompletedEvent([await userBone.waitRegistrationLv(0)]));
-    } catch(exc) {
-      onResult(exc);
-      return ButtonState.enabled;
-    }
+      ),
+      adderEmailError: _emailFieldSkeleton.inSignError,
+      adderPasswordError: _passwordFieldSkeleton.inSignError,
+    );
+    if (!res) return ButtonState.enabled;
+    onResult(CompletedEvent([await userBone.waitRegistrationLv(0)]));
     return ButtonState.disabled;
   }
 }
