@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:easy_blocs/src/utility.dart';
 import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -145,13 +146,15 @@ typedef _ListObservableBuilder<V>(
     BuildContext context, IndexedWidgetBuilder itemBuilder, ObservableState<List<V>> state);
 
 class ObservableListBuilder<V> extends StatefulWidget {
-  final _ListObservableBuilder<V> builder;
-  final ObservableValueBuilder<V> itemBuilder;
   final Stream<List<V>> stream;
+  final ValueToOne<Stream<V>, Stream<V>> itemStreamBuilder;
+  final ObservableValueBuilder<V> itemBuilder;
+  final _ListObservableBuilder<V> builder;
 
   const ObservableListBuilder({
     Key key,
     @required this.stream,
+    this.itemStreamBuilder,
     @required this.builder,
     @required this.itemBuilder,
   }) : super(key: key);
@@ -203,8 +206,9 @@ class _ObservableListBuilderState<V> extends State<ObservableListBuilder<V>> {
   }
 
   Widget _itemBuilder(BuildContext context, int index) {
+    final stream = _distinctStream.map((items) => items[index]);
     return ObservableBuilder<V>(
-      stream: _distinctStream.map((items) => items[index]),
+      stream: widget.itemStreamBuilder == null ? stream : widget.itemStreamBuilder(stream),
       initialData: _state.data[index],
       builder: (_context, value, state) {
         return widget.itemBuilder(_context, value, state);
@@ -320,6 +324,15 @@ mixin _ErrorWidgets<D> on ObservableState<D> {
     );
   }
 }
+
+abstract class ObservableCombiner {
+  static ValueObservable<T> latest2<A, B, T>(
+      ValueObservable<A> streamA, ValueObservable<B> streamB, T combiner(A valueA, B valueB)) {
+    return Observable.combineLatest2(streamA, streamB, combiner)
+        .shareValueSeeded(combiner(streamA.value, streamB.value));
+  }
+}
+
 
 //abstract class Controller {
 //  void close();

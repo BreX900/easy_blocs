@@ -45,6 +45,13 @@ class TextFieldSheet {
   }
 }
 
+class TextFieldShield {
+  final bool expands;
+  final int minLines, maxLines;
+
+  const TextFieldShield({this.expands: false, this.minLines, this.maxLines: 1});
+}
+
 abstract class TextFieldBone extends FieldBone<String> {
   Stream<String> get outValue;
   Stream<String> get outTmpValue;
@@ -97,6 +104,7 @@ class TextFieldShell extends StatefulWidget implements FieldShell, FocusShell {
 
   final FieldErrorTranslator nosy;
   final InputDecoration decoration;
+  final TextFieldShield shield;
 
   const TextFieldShell({
     Key key,
@@ -105,6 +113,7 @@ class TextFieldShell extends StatefulWidget implements FieldShell, FocusShell {
     this.focusNode,
     this.nosy: basicNoisy,
     this.decoration: const InputDecoration(),
+    this.shield: const TextFieldShield(),
   })  : assert(bone != null),
         assert(decoration != null),
         super(key: key);
@@ -198,6 +207,9 @@ class TextFieldShellState extends State<TextFieldShell> with FieldStateMixin, Fo
       maxLength: _data.data2.maxLength,
       inputFormatters: _data.data2.inputFormatters,
       onSubmitted: (_) => nextFocus(),
+      minLines: widget.shield.minLines,
+      maxLines: widget.shield.maxLines,
+      expands: widget.shield.expands,
     );
   }
 }

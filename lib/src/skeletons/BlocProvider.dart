@@ -4,7 +4,6 @@ import 'dart:collection';
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:flutter/widgets.dart';
 
-
 class BlocProvider {
   static HashMap<Type, BlocBase> _cache = HashMap<Type, BlocBase>();
 
@@ -25,20 +24,14 @@ class BlocProvider {
   }
 }
 
-
-abstract class BlocBase extends Skeleton {
-
-}
-
+abstract class BlocBase extends Skeleton {}
 
 abstract class BlocEvent extends BlocBase {
   Stream get outEvent;
 }
 
-
 mixin BlocScreenStateMixin<WidgetType extends StatefulWidget, BlocType extends BlocEvent>
-on State<WidgetType> {
-
+    on State<WidgetType> {
   final BlocType bloc = BlocProvider.of<BlocType>();
 
   StreamSubscription _subscription;

@@ -47,18 +47,18 @@ class Pocket {
   }
 }
 
-mixin PocketWriters {
+class MapWriters {
   final HashMap<String, StreamSubscription> _keyWriters = HashMap();
 
   void dispose() {
     _keyWriters.values.forEach((subscription) => subscription.cancel());
   }
 
-  void insert<K>(StreamSubscription<K> subscription, {String key}) {
-    key = key ?? K.toString();
-    assert(_keyWriters[key] != null);
-    _keyWriters[key] = subscription;
-  }
+//  void put<K>(StreamSubscription<K> subscription, {String key}) {
+//    key = key ?? K.toString();
+//    assert(_keyWriters[key] != null);
+//    _keyWriters[key] = subscription;
+//  }
 
   void put<K>(StreamSubscription<K> subscription, {String key}) {
     key = key ?? K.toString();
@@ -68,35 +68,76 @@ mixin PocketWriters {
 
   void pop<K>({String key}) => _keyWriters[key ?? K.toString()]?.cancel();
 
-  void remove<K>({String key}) => _keyWriters[key ?? K.toString()].cancel();
+//  void popAndClose<K>({String key}) => _keyWriters[key ?? K.toString()].cancel();
 }
 
-class TinyPocket<T> with PocketWriters {
+abstract class ListWriters {
+  List<ValueGetter<StreamSubscription>> _writers = [];
+  List<StreamSubscription> _subscriptions = [];
+
+  set addWriter(ValueGetter<StreamSubscription> writer) {
+    if (writer != null) _writers.add(writer);
+  }
+
+  void writer();
+
+  void unsubscribe() {
+    _subscriptions.forEach((sub) => sub?.cancel());
+    _subscriptions = [];
+  }
+
+  void dispose() {
+    _writers = null;
+    unsubscribe();
+  }
+}
+
+class OnceWriters extends ListWriters {
+  @override
+  void writer() {
+    _subscriptions.addAll(_writers.map((source) => source()));
+    _writers = [];
+  }
+}
+
+class RepeatWriters extends ListWriters {
+  @override
+  void writer() {
+    unsubscribe();
+    _subscriptions.addAll(_writers.map((source) => source()));
+  }
+}
+
+class TinyPocket<T> {
   final StreamController<T> _controller;
-  final List<ValueGetter<StreamSubscription>> _writers = [];
-  List<StreamSubscription> _subscriptions;
+  final ListWriters _onceWriters = OnceWriters(), _repeatWriters = RepeatWriters();
+  bool isStart = false;
+  final MapWriters _writers = MapWriters();
 
   TinyPocket(
     this._controller, {
     void onListen(),
     void onCancel(),
-  }) : assert(_controller != null) {
-    _controller.onListen = () {
-      if (_subscriptions != null)
-        return;
+  }) {
+    _controller.onListen = () async {
       if (onListen != null) onListen();
-      _subscriptions = _writers.map((source) => source()).toList();
+      _onceWriters.writer();
+      _repeatWriters.writer();
     };
-    _controller.onCancel = () {
+    _controller.onCancel = () async {
       if (onCancel != null) onCancel();
-      //_subscription?.cancel();
-      _subscriptions?.forEach((sub) => sub.cancel());
-      super.dispose();
+      _onceWriters.dispose();
+      _repeatWriters.dispose();
+      _writers.dispose();
     };
   }
 
-  void addWriter(ValueGetter<StreamSubscription> writer) {
-    if (writer != null) _writers.add(writer);
+  void addWriter<E>(ValueGetter<StreamSubscription<E>> writer, {bool repeat: false}) {
+    assert(writer != null);
+    if (repeat)
+      _repeatWriters.addWriter = writer;
+    else
+      _onceWriters.addWriter = writer;
   }
 
   void catchSource<E>({
@@ -105,16 +146,39 @@ class TinyPocket<T> with PocketWriters {
     Function onError,
     void onDone(),
     bool cancelOnError: false,
+    bool repeat: false,
   }) {
-    assert(source != null && onData != null);
-
-    addWriter(() => source()?.listen(
-          onData,
-          onError: onError,
-          onDone: onDone,
-          cancelOnError: cancelOnError,
-        ));
+    addWriter(
+        () => source()?.listen(
+              onData,
+              onError: onError,
+              onDone: onDone,
+              cancelOnError: cancelOnError,
+            ),
+        repeat: repeat);
   }
+
+  void pipeSource(
+    ValueGetter<FutureOr<Stream<T>>> source, {
+    Function onError,
+    void Function() onDone,
+    bool cancelOnError,
+    bool repeat: false,
+  }) {
+    catchSource(
+      source: source,
+      onData: _controller.add,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+      repeat: repeat,
+    );
+  }
+
+  void put<K>(StreamSubscription<K> subscription, {String key}) =>
+      _writers.put(subscription, key: key);
+
+  void pop<K>({String key}) => _writers.pop(key: key);
 
   void catchStream<E>({
     String key,
@@ -133,17 +197,6 @@ class TinyPocket<T> with PocketWriters {
     ));
   }
 
-  void pipeSource(ValueGetter<FutureOr<Stream<T>>> source,
-      {Function onError, void onDone(), bool cancelOnError}) {
-    catchSource<T>(
-      source: source,
-      onData: _controller.add,
-      onError: onError,
-      onDone: onDone,
-      cancelOnError: cancelOnError,
-    );
-  }
-
   void pipeStream(
     Stream<T> stream, {
     Function onError,
@@ -159,6 +212,96 @@ class TinyPocket<T> with PocketWriters {
     );
   }
 }
+
+//class TinyPocket<T> with MapWriters {
+//  final StreamController<T> _controller;
+//  final ListWriters _listWriters = ListWriters();
+//
+//  TinyPocket(
+//    this._controller, {
+//    void onListen(),
+//    void onCancel(),
+//  }) : assert(_controller != null) {
+//    _controller.onListen = () {
+//      if (onListen != null) onListen();
+//      _subscriptions.addAll(_writers.map((source) => source()));
+//      if (_isBehaviorSubject) _writers = [];
+//    };
+//    _controller.onCancel = () {
+//      if (onCancel != null) onCancel();
+//      //_subscription?.cancel();
+//      _subscriptions.forEach((sub) => sub.cancel());
+//      super.dispose();
+//    };
+//  }
+//
+//  bool get _isBehaviorSubject => _controller is BehaviorSubject<T>;
+//
+//  set addSubscription(ValueGetter<StreamSubscription> writer) {
+//    assert(_subscriptions != null && _isBehaviorSubject);
+//    if (writer != null) _writers.add(writer);
+//  }
+//
+//  void catchSource<E>({
+//    @required ValueGetter<Stream<E>> source,
+//    @required void onData(E event),
+//    Function onError,
+//    void onDone(),
+//    bool cancelOnError: false,
+//  }) {
+//    assert(source != null && onData != null);
+//
+//    addSubscription = () => source()?.listen(
+//          onData,
+//          onError: onError,
+//          onDone: onDone,
+//          cancelOnError: cancelOnError,
+//        );
+//  }
+//
+//  void catchStream<E>({
+//    String key,
+//    @required Stream<E> stream,
+//    @required void onData(E event),
+//    Function onError,
+//    void onDone(),
+//    bool cancelOnError: false,
+//  }) {
+//    assert(stream != null && onData != null);
+//    put<E>(stream.listen(
+//      onData,
+//      onError: onError,
+//      onDone: onDone,
+//      cancelOnError: cancelOnError,
+//    ));
+//  }
+//
+//  void pipeSource(ValueGetter<FutureOr<Stream<T>>> source,
+//      {Function onError, void onDone(), bool cancelOnError}) {
+//    catchSource<T>(
+//      source: source,
+//      onData: _controller.add,
+//      onError: onError,
+//      onDone: onDone,
+//      cancelOnError: cancelOnError,
+//    );
+//  }
+//
+//  void pipeStream(
+//    Stream<T> stream, {
+//    Function onError,
+//    void onDone(),
+//    bool cancelOnError: false,
+//  }) {
+//    catchStream<T>(
+//      stream: stream,
+//      onData: _controller.add,
+//      onError: onError,
+//      onDone: onDone,
+//      cancelOnError: cancelOnError,
+//    );
+//  }
+//}
 
 //class _test extends StatefulWidget {
 //  final MapFocusBone bone;
