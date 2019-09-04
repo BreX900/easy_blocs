@@ -108,6 +108,8 @@ class RepeatWriters extends ListWriters {
   }
 }
 
+typedef Stream<V> StreamSource<V>();
+
 class TinyPocket<T> {
   final StreamController<T> _controller;
   final ListWriters _onceWriters = OnceWriters(), _repeatWriters = RepeatWriters();
@@ -141,7 +143,7 @@ class TinyPocket<T> {
   }
 
   void catchSource<E>({
-    @required ValueGetter<Stream<E>> source,
+    @required StreamSource<E> source,
     @required void onData(E event),
     Function onError,
     void onDone(),
@@ -159,7 +161,7 @@ class TinyPocket<T> {
   }
 
   void pipeSource(
-    ValueGetter<FutureOr<Stream<T>>> source, {
+    StreamSource<T> source, {
     Function onError,
     void Function() onDone,
     bool cancelOnError,

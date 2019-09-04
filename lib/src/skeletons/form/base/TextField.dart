@@ -86,11 +86,6 @@ class TextFieldSkeleton extends FieldSkeleton<String> implements TextFieldBone {
     if (_outErrorAndSheet == null) _outErrorAndSheet = Data2.combineLatest(outError, outSheet);
     return _outErrorAndSheet;
   }
-
-  @override
-  Future<void> inFieldState(FieldState state) async {
-    await inSheet(sheet.copyWith(isEnable: state == FieldState.active));
-  }
 }
 
 /// Il valore initialValue se cambiato non porta nessuna modifica per ciò è da racchiudere tutti

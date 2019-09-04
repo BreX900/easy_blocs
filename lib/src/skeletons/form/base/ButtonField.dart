@@ -7,7 +7,6 @@ import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-
 abstract class ButtonFieldBone extends Bone implements FieldBoneBase, ButtonBone {
   set formBone(FormBone formBone);
   FormBone _formBone;
@@ -20,47 +19,62 @@ class ButtonFieldSkeleton extends ButtonSkeleton with FieldSkeletonBase implemen
   set formBone(FormBone formBone) => _formBone = formBone;
 
   @override
-  Future<void> onPressed({AsyncCallback starter, AsyncCallback completed}) async {
+  Future<void> onPressed({AsyncCallback starter, AsyncCallback completed}) {
     assert(_formBone != null);
-    _formBone.submit(() async {
-      final res = await onSubmit();
-      return res == ButtonState.disabled ? FieldState.completed : FieldState.active;
+    return workInSafeArea(() async {
+      _formBone.submit(() async {
+        final res = await onSubmit();
+        inState(res);
+      });
     });
-
-  }
-
-  @override
-  Future<void> inFieldState(FieldState state) async {
-    switch (state) {
-      case FieldState.active:
-        addState(ButtonState.enabled);
-        break;
-      case FieldState.working:
-        addState(ButtonState.working);
-        break;
-      case FieldState.completed:
-        addState(ButtonState.disabled);
-        break;
-    }
   }
 }
 
 class ButtonFieldShell extends StatefulWidget implements FieldShell {
   final ButtonFieldBone bone;
 
-  final ButtonShield shield;
+  final ButtonDesign buttonDesign;
+  final ButtonTextTheme textTheme;
+  final Color textColor;
+  final Color disabledTextColor;
+  final Color color;
+  final Color disabledColor;
+  final Color focusColor;
+  final Color hoverColor;
+  final Color highlightColor;
+  final Color splashColor;
+  final EdgeInsetsGeometry padding;
+  final ShapeBorder shape;
+  final Clip clipBehavior;
+  final FocusNode focusNode;
+
   final Widget child;
 
-  const ButtonFieldShell({Key key,
+  const ButtonFieldShell({
+    Key key,
     @required this.bone,
-    this.shield: const ButtonShield(), this.child,
+    this.buttonDesign: ButtonDesign.raised,
+    this.textTheme,
+    this.textColor,
+    this.disabledTextColor,
+    this.color,
+    this.disabledColor,
+    this.focusColor,
+    this.hoverColor,
+    this.highlightColor,
+    this.splashColor,
+    this.padding,
+    this.shape,
+    this.clipBehavior,
+    this.focusNode,
+    this.child,
   }) : super(key: key);
 
   @override
   _ButtonFieldShellState createState() => _ButtonFieldShellState();
 }
 
-class _ButtonFieldShellState extends State<ButtonFieldShell> with FieldStateMixin {
+class _ButtonFieldShellState extends FieldState<ButtonFieldShell> {
   FormBone _formBone;
 
   @override
@@ -88,10 +102,21 @@ class _ButtonFieldShellState extends State<ButtonFieldShell> with FieldStateMixi
 
   @override
   Widget build(BuildContext context) {
-
     return ButtonShell(
       bone: widget.bone,
-      shield: widget.shield,
+      isEnableSafeArea: true,
+      buttonDesign: widget.buttonDesign,
+      textTheme: widget.textTheme,
+      textColor: widget.textColor,
+      disabledTextColor: widget.disabledTextColor,
+      color: widget.color,
+      disabledColor: widget.disabledColor,
+      focusColor: widget.focusColor,
+      hoverColor: widget.hoverColor,
+      splashColor: widget.splashColor,
+      shape: widget.shape,
+      clipBehavior: widget.clipBehavior,
+      focusNode: widget.focusNode,
       child: widget.child,
     );
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:easy_blocs/src/skeletons/BoneProvider.dart';
+import 'package:easy_blocs/src/skeletons/area/SafeArea.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -36,20 +37,17 @@ mixin FieldStateMixin<WidgetType extends FieldShell> on State<WidgetType> {
 
   @override
   void dispose() {
-    _formBone.removeField(widget.bone);
+    _formBone?.removeField(widget.bone);
     super.dispose();
   }
 }
 
-abstract class FieldBoneBase extends Bone {
-  void _inFormState(FieldState state);
-}
+abstract class FieldState<WidgetType extends FieldShell> extends State<WidgetType>
+    with FieldStateMixin {}
 
-mixin FieldSkeletonBase implements FieldBoneBase {
-  @override
-  void _inFormState(FieldState state) => inFieldState(state);
-  void inFieldState(FieldState state);
-}
+abstract class FieldBoneBase extends Bone implements SafePeopleSkeleton {}
+
+mixin FieldSkeletonBase implements FieldBoneBase {}
 
 abstract class FieldBone<V> extends FieldBoneBase {
   Stream<V> get outValue;
@@ -60,7 +58,9 @@ abstract class FieldBone<V> extends FieldBoneBase {
   void _save();
 }
 
-abstract class FieldSkeleton<V> extends Skeleton with FieldSkeletonBase implements FieldBone<V> {
+abstract class FieldSkeleton<V> extends Skeleton
+    with SafePeopleSkeleton, FieldSkeletonBase
+    implements FieldBone<V> {
   final List<FieldValidator<V>> validators;
 
   FieldSkeleton({
@@ -91,26 +91,31 @@ abstract class FieldSkeleton<V> extends Skeleton with FieldSkeletonBase implemen
     if (_errorController.value != error) _errorController.add(error);
   }
 
+  V _valueForSave;
+
   @override
-  Future<bool> _validation() async {
-    try {
-      for (var validator in validators) {
-        final error = await validator(tmpValue);
-        if (error != null) {
-          inError(error);
-          return false;
+  Future<bool> _validation() {
+    _valueForSave = tmpValue;
+    return () async {
+      try {
+        for (var validator in validators) {
+          final error = await validator(_valueForSave);
+          if (error != null) {
+            inError(error);
+            return false;
+          }
         }
+        inError(null);
+        return true;
+      } catch (exc) {
+        inError(FieldError.$exception);
+        return false;
       }
-      inError(null);
-      return true;
-    } catch (exc) {
-      inError(FieldError.$exception);
-      return false;
-    }
+    }();
   }
 
   @override
-  void _save() => inValue(tmpValue);
+  void _save() => inValue(_valueForSave);
 }
 
 typedef InputDecoration FieldDecorator<S>(S fieldBone);
@@ -138,6 +143,7 @@ TranslationsConst basicNoisy(FieldError error) {
       return byPassNoisy(error);
   }
 }
+
 @deprecated
 TranslationsConst byPassNoisy(FieldError error) {
   return error == null ? null : TranslationsConst(en: error.code);
@@ -166,11 +172,11 @@ class ValueFieldValidator {
   }
 }
 
-enum FieldState {
-  active,
-  working,
-  completed,
-}
+//enum FieldState {
+//  active,
+//  working,
+//  completed,
+//}
 
 /// Form Controller
 
@@ -185,17 +191,15 @@ abstract class FormBone implements Bone {
 
   Future<bool> validation();
   void save();
-  Future<void> submit(AsyncValueGetter<FieldState> result);
+  Future<void> submit(AsyncCallback worker);
 
   factory FormBone.of(BuildContext context) => BoneProvider.of(context);
 }
 
-class FormSkeleton extends Skeleton with FormBone {
+class FormSkeleton extends Skeleton with FormBone, SafePeopleSkeleton {
   final List<FieldBoneBase> _fields = [];
 
   Future<bool> validation() async {
-    await inState(FieldState.working);
-
     bool isValid = true;
 
     await Future.wait(_fields.map((field) async {
@@ -203,27 +207,24 @@ class FormSkeleton extends Skeleton with FormBone {
         final res = await field._validation();
         if (!res) isValid = false;
       }
-    }));
-
-    if (!isValid) inState(FieldState.active);
+    }).toList());
 
     return isValid;
   }
 
-  void save() => _fields.forEach((field) {
-        if (field is FieldBone) field._save();
-      });
+  void save() {
+    _fields.forEach((field) {
+      if (field is FieldBone) field._save();
+    });
+  }
 
-  Future<void> submit(AsyncValueGetter<FieldState> resulter) => validation().then((res) async {
+  Future<void> submit(AsyncCallback worker) async {
+    workInSafeArea(() async {
+      validation().then((res) async {
         if (!await validation()) return null;
         save();
-        return resulter().then(inState, onError: (_) {
-          inState(FieldState.active);
-        });
+        await worker();
       });
-
-  @override
-  Future<void> inState(FieldState fieldState) async {
-    _fields.forEach((field) => field._inFormState(fieldState));
+    });
   }
 }

@@ -78,10 +78,6 @@ class TranslationsFieldSkeleton extends FieldSkeleton<Translations>
     if (_outSheetAndError == null) _outSheetAndError = Data2.combineLatest(outSheet, outError);
     return _outSheetAndError;
   }
-
-  @override
-  void inFieldState(FieldState state) =>
-      inSheet(sheet.copyWith(isEnable: state == FieldState.active));
 }
 
 class TranslationsFieldShell extends StatefulWidget implements FieldShell, FocusShell {
@@ -112,8 +108,8 @@ class TranslationsFieldShell extends StatefulWidget implements FieldShell, Focus
   TranslationsFieldShellState createState() => TranslationsFieldShellState();
 }
 
-class TranslationsFieldShellState extends State<TranslationsFieldShell>
-    with FieldStateMixin, FocusShellStateMixin, TickerProviderStateMixin {
+class TranslationsFieldShellState extends FieldState<TranslationsFieldShell>
+    with FocusShellStateMixin, TickerProviderStateMixin {
   final repositoryBloc = RepositoryBlocBase.of();
 
   TabController _tabController;

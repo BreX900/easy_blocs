@@ -142,22 +142,111 @@ class _ObservableBuilderState<V> extends State<ObservableBuilder<V>>
   Widget build(BuildContext context) => widget.builder(context, _state.data, _state);
 }
 
-typedef _ListObservableBuilder<V>(
-    BuildContext context, IndexedWidgetBuilder itemBuilder, ObservableState<List<V>> state);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+class _InfoItemBuilder {
+  final int length, index;
+
+  _InfoItemBuilder(this.length, this.index);
+
+  bool get isDangerZone => index >= length;
+  bool get isSafeZone => index < length;
+}
+
+typedef Widget _ListObservableBuilder<V>(
+  BuildContext context,
+  IndexedWidgetBuilder itemBuilder,
+  ObservableState<List<V>> state,
+);
+typedef IndexedWidgetBuilder _ItemObservableBuilder<V>(
+    Widget builder(int index, ValueObservable<V> outValue));
+
+typedef Widget _AdvListObservableBuilder<V>(
+  BuildContext context,
+  _AdvItemObservableBuilder<V> itemBuilder,
+  ObservableState<List<V>> state,
+);
+typedef IndexedWidgetBuilder _AdvItemObservableBuilder<V>(
+    Widget builder(BuildContext context, V value));
+
+typedef Widget _ItemBuilder<V>(BuildContext context, Stream<V> stream, _InfoItemBuilder info);
 
 class ObservableListBuilder<V> extends StatefulWidget {
   final Stream<List<V>> stream;
-  final ValueToOne<Stream<V>, Stream<V>> itemStreamBuilder;
-  final ObservableValueBuilder<V> itemBuilder;
-  final _ListObservableBuilder<V> builder;
 
-  const ObservableListBuilder({
+  final _ListObservableBuilder<V> builder;
+  final _ItemBuilder<V> itemBuilder;
+
+  const ObservableListBuilder.basic({
     Key key,
     @required this.stream,
-    this.itemStreamBuilder,
     @required this.builder,
     @required this.itemBuilder,
   }) : super(key: key);
+
+  ObservableListBuilder({
+    Key key,
+    @required this.stream,
+    @required this.builder,
+    @required Widget itemBuilder(BuildContext context, V value, _InfoItemBuilder info),
+  })  : this.itemBuilder = ((_, outValue, info) {
+          return ObservableBuilder(
+            stream: outValue,
+            builder: (context, value, _) {
+              return itemBuilder(context, value, info);
+            },
+          );
+        }),
+        super(key: key);
 
   @override
   _ObservableListBuilderState<V> createState() => _ObservableListBuilderState<V>();
@@ -205,20 +294,20 @@ class _ObservableListBuilderState<V> extends State<ObservableListBuilder<V>> {
     setState(() => _state = state);
   }
 
-  Widget _itemBuilder(BuildContext context, int index) {
-    final stream = _distinctStream.map((items) => items[index]);
-    return ObservableBuilder<V>(
-      stream: widget.itemStreamBuilder == null ? stream : widget.itemStreamBuilder(stream),
-      initialData: _state.data[index],
-      builder: (_context, value, state) {
-        return widget.itemBuilder(_context, value, state);
-      },
-    );
+  ValueObservable<V> _getItemStream(int index) {
+    return Observable(_distinctStream.map((items) => items[index]))
+        .shareValueSeeded(_state.data[index]);
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(context, _itemBuilder, _state);
+    return widget.builder(context, (context, index) {
+      final info = _InfoItemBuilder(_state.data.length, index);
+      if (info.isDangerZone)
+        return widget.itemBuilder(context, null, info);
+      return widget.itemBuilder(
+          context, _getItemStream(index), info);
+    }, _state);
   }
 }
 

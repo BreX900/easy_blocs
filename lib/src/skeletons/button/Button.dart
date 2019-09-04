@@ -1,92 +1,127 @@
 import 'dart:async';
 
 import 'package:easy_blocs/easy_blocs.dart';
+import 'package:easy_blocs/src/skeletons/area/SafeArea.dart';
 import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
+typedef Widget _ButtonShellBuilder(BuildContext context, ButtonState state);
 
-class ButtonShell extends StatefulWidget {
+class ButtonShellBuilder extends StatefulWidget implements ObservableListener<ButtonState> {
   final ButtonBone bone;
+  final bool isEnableSafeArea;
+  final _ButtonShellBuilder builder;
 
-  final ButtonShield shield;
-  final Widget child;
-
-  const ButtonShell({Key key,
+  const ButtonShellBuilder({
+    Key key,
     @required this.bone,
-    this.shield: const ButtonShield(), this.child,
+    this.isEnableSafeArea: false,
+    @required this.builder,
   }) : super(key: key);
 
+  Stream<ButtonState> get stream => bone.outState;
+
   @override
-  _ButtonShellState createState() => _ButtonShellState();
+  _ButtonShellStateBuilder createState() => _ButtonShellStateBuilder();
 }
 
-class _ButtonShellState extends State<ButtonShell> {
-
-  ObservableSubscriber<ButtonState> _stateSubscriber;
+class _ButtonShellStateBuilder extends State<ButtonShellBuilder>
+    with
+        SafePeopleState<ButtonShellBuilder>,
+        ObservableListenerStateMixin<ButtonShellBuilder, ButtonState> {
   ButtonState _state;
 
   @override
-  void initState() {
-    super.initState();
-    _stateSubscriber = ObservableSubscriber(_stateListener)..subscribe(widget.bone.outState);
-  }
+  bool get isEnableSafeArea => widget.isEnableSafeArea;
 
   @override
-  void didUpdateWidget(ButtonShell oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.bone != oldWidget.bone) {
-      _stateSubscriber..unsubscribe()..subscribe(widget.bone.outState);
-    }
-  }
+  SafePeopleBone get people => widget.bone;
 
   @override
-  void dispose() {
-    _stateSubscriber.unsubscribe();
-    super.dispose();
-  }
-
-  void _stateListener(ObservableState<ButtonState> update) {
+  void onChangeObservableState(ObservableState<ButtonState> update) {
     setState(() => _state = update.data);
   }
 
   @override
   Widget build(BuildContext context) {
-
-    if (_state == null)
-      return const Center(
-        child: const Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: const CircularProgressIndicator(),
-        ),
-      );
-
-    return Button(
-      shield: widget.shield,
-      onPressed: _state == ButtonState.enabled ? widget.bone.onPressed : null,
-      child: widget.child,
-    );
+    return widget.builder(context, _state);
   }
 }
 
+class ButtonShell extends ButtonShellBuilder {
+  final ButtonDesign buttonDesign;
+  final ButtonTextTheme textTheme;
+  final Color textColor;
+  final Color disabledTextColor;
+  final Color color;
+  final Color disabledColor;
+  final Color focusColor;
+  final Color hoverColor;
+  final Color highlightColor;
+  final Color splashColor;
+  final EdgeInsetsGeometry padding;
+  final ShapeBorder shape;
+  final Clip clipBehavior;
+  final FocusNode focusNode;
+  final Widget child;
 
+  ButtonShell({
+    Key key,
+    @required ButtonBone bone,
+    bool isEnableSafeArea: false,
+    this.buttonDesign: ButtonDesign.raised,
+    this.textTheme,
+    this.textColor,
+    this.disabledTextColor,
+    this.color,
+    this.disabledColor,
+    this.focusColor,
+    this.hoverColor,
+    this.highlightColor,
+    this.splashColor,
+    this.padding,
+    this.shape,
+    this.clipBehavior,
+    this.focusNode,
+    this.child,
+  }) : super(
+            key: key,
+            bone: bone,
+            isEnableSafeArea: isEnableSafeArea,
+            builder: ((BuildContext context, ButtonState state) {
+              if (state == ButtonState.working)
+                return const Center(
+                  child: const Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: const CircularProgressIndicator(),
+                  ),
+                );
+
+              return Button.basic(
+                buttonDesign: buttonDesign,
+                onPressed: state == ButtonState.enabled ? bone.pressed : null,
+                child: child,
+              );
+            }));
+}
 
 enum ButtonState {
-  enabled, disabled, working,
+  enabled,
+  disabled,
+  working,
 }
 
-abstract class ButtonBone extends Bone {
+abstract class ButtonBone extends Bone implements SafePeopleBone {
   Stream<ButtonState> get outState;
-  Future<void> onPressed({AsyncCallback starter, AsyncCallback completed});
+  Future<void> pressed({AsyncCallback starter, AsyncCallback completed});
 }
 
-class ButtonSkeleton extends Skeleton implements ButtonBone {
-  AsyncValueGetter<ButtonState> onSubmit;
-
-  ButtonSkeleton({
+abstract class ButtonSkeletonBase extends Skeleton with SafePeopleSkeleton implements ButtonBone {
+  ButtonSkeletonBase({
     ButtonState state: ButtonState.enabled,
-  }) : this._stateController = BehaviorSubject.seeded(state);
+  }) : this._stateController = BehaviorSubject.seeded(state, sync: true);
 
   @override
   void dispose() {
@@ -97,29 +132,39 @@ class ButtonSkeleton extends Skeleton implements ButtonBone {
   final BehaviorSubject<ButtonState> _stateController;
   Stream<ButtonState> get outState => _stateController;
 
+  Future<void> onPressed({AsyncCallback starter, AsyncCallback completed});
+
+  /// TODO: Protected ???
+  void inState(ButtonState state) => _stateController.add(state);
+
+  /// Not ovveride
+  @override
+  Future<void> pressed({AsyncCallback starter, AsyncCallback completed}) async {
+    return workInSafeArea(() async {
+      _stateController.add(ButtonState.working);
+      onPressed(starter: starter, completed: completed).then((_) {}, onError: (error) {
+        _stateController.add(ButtonState.enabled);
+      });
+    });
+  }
+}
+
+class ButtonSkeleton extends ButtonSkeletonBase implements ButtonBone {
+  AsyncValueGetter<ButtonState> onSubmit;
+  ButtonSkeleton({
+    ButtonState state: ButtonState.enabled,
+  }) : super(state: state);
+
   @override
   Future<void> onPressed({AsyncCallback starter, AsyncCallback completed}) async {
     assert(onSubmit != null);
-    _stateController.add(ButtonState.working);
-    _onPressed(starter: starter, completed: completed).then(_stateController.add, onError: (error) {
-      _stateController.add(ButtonState.enabled);
-    });
+    if (starter != null) await starter();
+    final res = await onSubmit();
+    inState(res);
+    if (completed != null) await completed();
+    return res;
   }
-  Future<void> _onPressed({AsyncCallback starter, AsyncCallback completed}) async {
-    if (starter != null)
-      await starter();
-    return await onSubmit();
-  }
-  /// TODO: Protected ???
-  void addState(ButtonState state) => _stateController.add(state);
 }
-
-
-
-
-
-
-
 
 /// WITH FOCUS
 

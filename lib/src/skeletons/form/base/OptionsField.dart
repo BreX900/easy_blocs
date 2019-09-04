@@ -78,10 +78,6 @@ class OptionsFieldSkeleton<V> extends FieldSkeleton<V> implements OptionsFieldBo
   Data2<FieldError, bool> _combinerErrorAndIsEmpty(FieldError error, V tmpValue) {
     return Data2(error, tmpValue == null);
   }
-
-  @override
-  Future<void> inFieldState(FieldState state) =>
-      inSheet(sheet.copyWith(isEnable: state == FieldState.active));
 }
 
 class OptionsFieldShell<V> extends StatefulWidget implements FieldShell {

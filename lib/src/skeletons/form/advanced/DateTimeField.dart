@@ -4,6 +4,7 @@ import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
 import 'package:easy_blocs/src/rxdart_extension/Data.dart';
 import 'package:easy_blocs/src/rxdart_extension/ObservableBuilder.dart';
 import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/area/SafeArea.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_blocs/src/translator/TranslationsModel.dart';
 import 'package:easy_widget/easy_widget.dart';
@@ -71,9 +72,6 @@ class DateTimeFieldSkeleton extends FieldSkeleton<DateTime> implements DateTimeF
   Stream<DateTimeFieldSheet> get outSheet => _sheetController;
   DateTimeFieldSheet get sheet => _sheetController.value;
   void inSheet(DateTimeFieldSheet sheet) => _sheetController.add(sheet);
-  @override
-  void inFieldState(FieldState state) =>
-      inSheet(sheet.copyWith(isEnable: state == FieldState.active));
 
   Stream<Data2<FieldError, DateTimeFieldSheet>> _outErrorAndSheet;
   Stream<Data2<FieldError, DateTimeFieldSheet>> get outErrorAndSheet {
@@ -129,8 +127,7 @@ class DateTimeFieldShell<B extends DateTimeFieldBone> extends StatefulWidget
   _DateTimeFieldShellState createState() => _DateTimeFieldShellState();
 }
 
-class _DateTimeFieldShellState extends State<DateTimeFieldShell>
-    with FieldStateMixin, FocusShellStateMixin {
+class _DateTimeFieldShellState extends FieldState<DateTimeFieldShell> with FocusShellStateMixin {
   final RepositoryBlocBase _repositoryBloc = RepositoryBlocBase.of();
 
   final TextEditingController _controller = TextEditingController();
@@ -233,6 +230,9 @@ class _DateTimeFieldShellState extends State<DateTimeFieldShell>
       },
     );
   }
+
+  @override
+  SafePeopleSkeleton get people => widget.bone;
 }
 
 class DateTimeFieldValidator {

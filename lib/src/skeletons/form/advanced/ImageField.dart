@@ -132,8 +132,8 @@ class ImageFieldShell extends StatefulWidget implements FieldShell, FocusShell {
   _ImageFieldShellState createState() => _ImageFieldShellState();
 }
 
-class _ImageFieldShellState extends State<ImageFieldShell>
-    with FieldStateMixin, FocusShellStateMixin {
+class _ImageFieldShellState extends FieldState<ImageFieldShell>
+    with FocusShellStateMixin {
   void _onCreate([ImageFieldData data]) {
     showInputImageDialog(
       context: context,
@@ -155,6 +155,7 @@ class _ImageFieldShellState extends State<ImageFieldShell>
       children: <Widget>[
         Expanded(
           child: ObservableListBuilder<ImageFieldData>(
+            stream: widget.bone.outTmpValue,
             builder: (_, itemBuilder, state) {
               return ListViewPlusChild(
                 itemCount: state.data?.length ?? 0,
@@ -166,7 +167,7 @@ class _ImageFieldShellState extends State<ImageFieldShell>
                 builder: itemBuilder,
               );
             },
-            itemBuilder: (_, data, state) {
+            itemBuilder: (_, data, info) {
               final img = ImageFieldDataView(
                 data: data,
                 onCreate: () => _onCreate(data),
@@ -180,7 +181,6 @@ class _ImageFieldShellState extends State<ImageFieldShell>
                       child: img,
                     );
             },
-            stream: widget.bone.outTmpValue,
           ),
         ),
         ObservableBuilder(
