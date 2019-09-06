@@ -1,4 +1,4 @@
-import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/Focuser.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/PasswordField.dart';
 import 'package:easy_blocs/src/translator/TranslationsModel.dart';
@@ -26,10 +26,12 @@ class RepeatPasswordFieldShell extends PasswordFieldShell {
     @required RepeatPasswordFieldBone bone,
     FocuserBone mapFocusBone, FocusNode focusNode,
     InputDecoration decoration,
+    TextInputAction textInputAction,
   }) : super(key: key,
     bone: bone,
     mapFocusBone: mapFocusBone, focusNode: focusNode,
     decoration: decoration??decorator(bone),
+      textInputAction: textInputAction,
   );
 
   static InputDecoration decorator(PasswordFieldBone bone, {

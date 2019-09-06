@@ -1,5 +1,3 @@
-
-
 abstract class ModelBase {
   String get id;
 
@@ -12,6 +10,4 @@ abstract class ModelBase {
   }
 }
 
-abstract class UserBase extends ModelBase {
-
-}
+abstract class UserBase extends ModelBase {}

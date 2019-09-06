@@ -1,7 +1,5 @@
-
 import 'package:easy_blocs/src/skeletons/Skeleton.dart';
 import 'package:flutter/widgets.dart';
-
 
 class BoneProvider<BoneType extends Bone> extends InheritedWidget {
   final BoneType bone;
@@ -10,21 +8,19 @@ class BoneProvider<BoneType extends Bone> extends InheritedWidget {
     Key key,
     @required this.bone,
     @required Widget child,
-  })
-      : assert(bone != null),
+  })  : assert(bone != null),
         assert(child != null),
         super(key: key, child: child);
 
   BoneProvider.tree(this.bone) : super();
 
-  static BoneType of<BoneType extends Bone>(BuildContext context, [allowNull = true]) {
-
+  static BoneType of<BoneType extends Bone>(BuildContext context, [allowNull = false]) {
     Type typeOf<T>() => T;
 
-    final bone = (
-        context.ancestorInheritedElementForWidgetOfExactType(
-            typeOf<BoneProvider<BoneType>>()
-        )?.widget as BoneProvider<BoneType>)?.bone;
+    final bone = (context
+            .ancestorInheritedElementForWidgetOfExactType(typeOf<BoneProvider<BoneType>>())
+            ?.widget as BoneProvider<BoneType>)
+        ?.bone;
 
     assert(allowNull || bone != null, "The $BoneType must not null");
 
@@ -44,5 +40,3 @@ class BoneProvider<BoneType extends Bone> extends InheritedWidget {
     );
   }
 }
-
-

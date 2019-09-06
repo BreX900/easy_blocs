@@ -102,6 +102,17 @@ class ButtonShell extends ButtonShellBuilder {
               return Button.basic(
                 buttonDesign: buttonDesign,
                 onPressed: state == ButtonState.enabled ? bone.pressed : null,
+                textTheme: textTheme,
+                textColor: textColor,
+                disabledTextColor: disabledTextColor,
+                color: color,
+                disabledColor: disabledColor,
+                focusColor: focusColor,
+                hoverColor: hoverColor,
+                splashColor: splashColor,
+                shape: shape,
+                clipBehavior: clipBehavior,
+                focusNode: focusNode,
                 child: child,
               );
             }));

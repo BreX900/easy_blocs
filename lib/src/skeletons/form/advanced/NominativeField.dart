@@ -1,5 +1,5 @@
 import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/Focuser.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_blocs/src/skeletons/form/base/TextField.dart';
 import 'package:flutter/material.dart';

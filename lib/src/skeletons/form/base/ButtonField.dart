@@ -19,14 +19,12 @@ class ButtonFieldSkeleton extends ButtonSkeleton with FieldSkeletonBase implemen
   set formBone(FormBone formBone) => _formBone = formBone;
 
   @override
-  Future<void> onPressed({AsyncCallback starter, AsyncCallback completed}) {
+  Future<void> onPressed({AsyncCallback starter, AsyncCallback completed}) async {
     assert(_formBone != null);
-    return workInSafeArea(() async {
-      _formBone.submit(() async {
-        final res = await onSubmit();
-        inState(res);
-      });
+    final res = await _formBone.submit(() async {
+      inState(await onSubmit());
     });
+    inState(res ? ButtonState.disabled : ButtonState.enabled);
   }
 }
 

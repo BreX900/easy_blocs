@@ -1,8 +1,9 @@
 import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/Focuser.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_blocs/src/skeletons/form/TextInputFormatters.dart';
 import 'package:easy_blocs/src/skeletons/form/base/TextField.dart';
+import 'package:easy_blocs/src/user/Sign.dart';
 import 'package:flutter/material.dart';
 
 abstract class PasswordFieldBone extends TextFieldBone {
@@ -48,6 +49,7 @@ class PasswordFieldShell extends TextFieldShell {
     FocusNode focusNode,
     FieldErrorTranslator nosy: noisy,
     InputDecoration decoration,
+    TextInputAction textInputAction,
   }) : super(
           key: key,
           bone: bone,
@@ -55,6 +57,7 @@ class PasswordFieldShell extends TextFieldShell {
           focusNode: focusNode,
           nosy: nosy,
           decoration: decoration ?? decorator(bone),
+          textInputAction: textInputAction,
         );
 
   static InputDecoration decorator(

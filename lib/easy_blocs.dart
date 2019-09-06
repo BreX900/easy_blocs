@@ -7,44 +7,44 @@ export 'src/cart/CartStorage.dart';
 export 'src/cart/CounterProductCart.dart';
 export 'src/cart/PriceView.dart';
 
-export 'src/checker/checkers/AddressChecker.dart';
-export 'src/checker/checkers/Checker.dart';
-export 'src/checker/checkers/DateTimeChecker.dart';
-export 'src/checker/checkers/EmailChecker.dart';
-export 'src/checker/checkers/IntChecker.dart';
-export 'src/checker/checkers/NominativeChecker.dart';
-export 'src/checker/checkers/PasswordChecker.dart';
-export 'src/checker/checkers/PhoneNumberChecker.dart';
-export 'src/checker/checkers/StringChecker.dart';
+export 'src/old/checker/checkers/AddressChecker.dart';
+export 'src/old/checker/checkers/Checker.dart';
+export 'src/old/checker/checkers/DateTimeChecker.dart';
+export 'src/old/checker/checkers/EmailChecker.dart';
+export 'src/old/checker/checkers/IntChecker.dart';
+export 'src/old/checker/checkers/NominativeChecker.dart';
+export 'src/old/checker/checkers/PasswordChecker.dart';
+export 'src/old/checker/checkers/PhoneNumberChecker.dart';
+export 'src/old/checker/checkers/StringChecker.dart';
 
-export 'src/checker/controllers/FocusHandler.dart';
-export 'src/checker/controllers/FormHandler.dart';
-export 'src/checker/controllers/MixinFormHandler.dart';
-export 'src/checker/controllers/MixinHand.dart';
-export 'src/checker/controllers/SubmitController.dart';
+export 'src/old/checker/controllers/FocusHandler.dart';
+export 'src/old/checker/controllers/FormHandler.dart';
+export 'src/old/checker/controllers/MixinFormHandler.dart';
+export 'src/old/checker/controllers/MixinHand.dart';
+export 'src/old/checker/controllers/SubmitController.dart';
 
-export 'src/checker/widget/AddressField.dart';
-export 'src/checker/widget/CheckerField.dart';
-export 'src/checker/widget/DateField.dart';
-export 'src/checker/widget/EmailField.dart';
-export 'src/checker/widget/IntField.dart';
-export 'src/checker/widget/NominativeField.dart';
-export 'src/checker/widget/PasswordField.dart';
-export 'src/checker/widget/PhoneNumberField.dart';
-export 'src/checker/widget/RememberMeField.dart';
-export 'src/checker/widget/StringField.dart';
-export 'src/checker/widget/SubmitButton.dart';
+export 'src/old/checker/widget/AddressField.dart';
+export 'src/old/checker/widget/CheckerField.dart';
+export 'src/old/checker/widget/DateField.dart';
+export 'src/old/checker/widget/EmailField.dart';
+export 'src/old/checker/widget/IntField.dart';
+export 'src/old/checker/widget/NominativeField.dart';
+export 'src/old/checker/widget/PasswordField.dart';
+export 'src/old/checker/widget/PhoneNumberField.dart';
+export 'src/old/checker/widget/RememberMeField.dart';
+export 'src/old/checker/widget/StringField.dart';
+export 'src/old/checker/widget/SubmitButton.dart';
 
 export 'src/connector/PageConnector.dart';
 
 export 'src/repository/RepositoryBloc.dart';
 export 'src/repository/RepositoryBuilder.dart';
 
-export 'src/rxdart_extension/CacheObservable.dart';
-export 'src/rxdart_extension/CacheStreamBuilder.dart';
-export 'src/rxdart_extension/CacheSubject.dart';
-export 'src/rxdart_extension/ObservableBuilder.dart';
-export 'src/rxdart_extension/Data.dart';
+export 'src/old/CacheObservable.dart';
+export 'src/old/CacheStreamBuilder.dart';
+export 'src/old/CacheSubject.dart';
+export 'src/rxdart/ObservableBuilder.dart';
+export 'src/rxdart/Data.dart';
 export 'package:easy_blocs/src/rxdart/MixinWriterSubscription.dart';
 export 'package:easy_blocs/src/rxdart/Pocket.dart';
 
@@ -54,7 +54,7 @@ export 'package:easy_blocs/src/skeletons/BoneProviderTree.dart';
 export 'package:easy_blocs/src/skeletons/ModelBase.dart';
 export 'package:easy_blocs/src/skeletons/Skeleton.dart';
 export 'package:easy_blocs/src/skeletons/BlocProvider.dart';
-export 'src/skeletons/AutomaticFocus.dart';
+export 'src/skeletons/Focuser.dart';
 
 export 'package:easy_blocs/src/skeletons/button/Button.dart';
 
@@ -92,11 +92,7 @@ export 'src/translator/TranslationsModel.dart';
 export 'src/translator/TranslatorController.dart';
 export 'src/translator/Widgets.dart';
 
-export 'package:easy_blocs/src/rxdart_extension/ObservableBuilder.dart';
+export 'package:easy_blocs/src/rxdart/ObservableBuilder.dart';
 export 'src/json.dart';
-
-export 'src/tree/BranchAdapter.dart';
-export 'src/tree/BranchWriterMixin.dart';
-export 'src/tree/ScrollViews.dart';
 
 export 'src/utility.dart';

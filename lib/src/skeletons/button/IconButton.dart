@@ -1,5 +1,4 @@
 import 'package:easy_blocs/src/skeletons/button/Button.dart';
-import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 

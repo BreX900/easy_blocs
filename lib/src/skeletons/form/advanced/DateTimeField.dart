@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
-import 'package:easy_blocs/src/rxdart_extension/Data.dart';
-import 'package:easy_blocs/src/rxdart_extension/ObservableBuilder.dart';
-import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
-import 'package:easy_blocs/src/skeletons/area/SafeArea.dart';
+import 'package:easy_blocs/src/rxdart/Data.dart';
+import 'package:easy_blocs/src/rxdart/ObservableBuilder.dart';
+import 'package:easy_blocs/src/skeletons/Focuser.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_blocs/src/translator/TranslationsModel.dart';
 import 'package:easy_widget/easy_widget.dart';
@@ -91,7 +90,7 @@ class DateTimeFieldShell<B extends DateTimeFieldBone> extends StatefulWidget
   final FieldErrorTranslator nosy;
   final InputDecoration decoration;
 
-  final DateFormat format;
+  final DateFormat format, pickerFormat;
   final Icon resetIcon;
 
   DateTimeFieldShell({
@@ -102,12 +101,13 @@ class DateTimeFieldShell<B extends DateTimeFieldBone> extends StatefulWidget
     this.nosy: nosey,
     this.decoration: const InputDecoration(),
     DateFormat format,
+    this.pickerFormat,
     this.resetIcon,
   })  : this.format = format ??
             (bone.pickerMode == DateTimePickerMode.datetime
-                ? DateFormat("MM-dd HH:mm")
+                ? DateFormat("dd-MM HH:mm")
                 : (bone.pickerMode == DateTimePickerMode.date
-                    ? DateFormat('aaaa-MM-dd')
+                    ? DateFormat('dd-MM-aaaa')
                     : DateFormat('HH:mm'))),
         assert(bone != null),
         super(key: key);
@@ -206,7 +206,7 @@ class _DateTimeFieldShellState extends FieldState<DateTimeFieldShell> with Focus
 
         DatePicker.showDatePicker(
           _context,
-          dateFormat: '${widget.format.pattern}',
+          dateFormat: '${(widget.pickerFormat ?? widget.format).pattern}',
           minDateTime: widget.bone.validator.getMinDateTime(),
           maxDateTime: widget.bone.validator.getMaxDateTime(),
           initialDateTime: currentValue,
@@ -230,9 +230,6 @@ class _DateTimeFieldShellState extends FieldState<DateTimeFieldShell> with Focus
       },
     );
   }
-
-  @override
-  SafePeopleSkeleton get people => widget.bone;
 }
 
 class DateTimeFieldValidator {

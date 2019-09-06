@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:easy_blocs/src/repository/RepositoryBloc.dart';
-import 'package:easy_blocs/src/rxdart_extension/Data.dart';
-import 'package:easy_blocs/src/rxdart_extension/ObservableBuilder.dart';
+import 'package:easy_blocs/src/rxdart/Data.dart';
+import 'package:easy_blocs/src/rxdart/ObservableBuilder.dart';
 import 'package:easy_blocs/src/skeletons/BlocProvider.dart';
 import 'package:easy_blocs/src/sp/Sp.dart';
 import 'package:easy_blocs/src/sp/SpController.dart';
@@ -37,10 +37,6 @@ class RepositoryBuilder<R extends RepositoryBlocBase> extends StatefulWidget {
   })  : assert(builder != null),
         assert(creator != null),
         super(key: key);
-
-  static RepositoryBlocBase _repositoryInit(SharedPreferences sharedPreferences) {
-    return RepositoryBlocBase(sharedPreferences: sharedPreferences);
-  }
 
   @override
   _RepositoryBuilderState<R> createState() => _RepositoryBuilderState<R>();

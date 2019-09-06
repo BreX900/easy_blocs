@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class SafeAreaBone extends Skeleton implements Bone {
-  bool _isInSafeArea;
+  bool _isInSafeArea = true;
   bool get isInSafeArea => _isInSafeArea;
 
   void updateArea(bool isInSafeArea) {
@@ -12,13 +12,19 @@ class SafeAreaBone extends Skeleton implements Bone {
 
   Future<void> workInSafeArea(AsyncCallback worker) async {
     if (_isInSafeArea) {
-      updateArea(false);
-      await worker();
-      updateArea(true);
+      try {
+        updateArea(false);
+        await worker();
+        updateArea(true);
+      } catch (exc) {
+        updateArea(true);
+      }
     }
   }
 
-  factory SafeAreaBone.of(BuildContext context) => BoneProvider.of<SafeAreaBone>(context);
+  SafeAreaBone();
+  factory SafeAreaBone.of(BuildContext context, [bool allowNull = false]) =>
+      BoneProvider.of<SafeAreaBone>(context, allowNull);
 }
 
 abstract class SafePeopleBone extends Bone {
@@ -43,6 +49,12 @@ mixin SafePeopleState<TypeWidget extends StatefulWidget> on State<TypeWidget> {
   SafePeopleBone get people;
 
   bool get isEnableSafeArea;
+
+  @override
+  void initState() {
+    super.initState();
+    _people = people;
+  }
 
   @override
   void didChangeDependencies() {
@@ -70,5 +82,33 @@ mixin SafePeopleState<TypeWidget extends StatefulWidget> on State<TypeWidget> {
   void dispose() {
     _people._safeArea = null;
     super.dispose();
+  }
+}
+
+class SafePeople extends StatefulWidget {
+  final SafePeopleBone bone;
+  final Widget child;
+
+  const SafePeople({
+    Key key,
+    @required this.bone,
+    @required this.child,
+  })  : assert(bone != null),
+        assert(child != null),
+        super(key: key);
+
+  @override
+  _SafePeopleState createState() => _SafePeopleState();
+}
+
+class _SafePeopleState extends State<SafePeople> with SafePeopleState<SafePeople> {
+  @override
+  bool get isEnableSafeArea => true;
+  @override
+  SafePeopleBone get people => widget.bone;
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

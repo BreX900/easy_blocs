@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/Focuser.dart';
 import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';

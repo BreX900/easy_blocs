@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/Focuser.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -100,6 +100,7 @@ class TextFieldShell extends StatefulWidget implements FieldShell, FocusShell {
   final FieldErrorTranslator nosy;
   final InputDecoration decoration;
   final TextFieldShield shield;
+  final TextInputAction textInputAction;
 
   const TextFieldShell({
     Key key,
@@ -109,6 +110,7 @@ class TextFieldShell extends StatefulWidget implements FieldShell, FocusShell {
     this.nosy: basicNoisy,
     this.decoration: const InputDecoration(),
     this.shield: const TextFieldShield(),
+    this.textInputAction,
   })  : assert(bone != null),
         assert(decoration != null),
         super(key: key);
@@ -190,9 +192,11 @@ class TextFieldShellState extends State<TextFieldShell> with FieldStateMixin, Fo
   @override
   Widget build(BuildContext context) {
     return TextField(
+      autofocus: false,
       controller: _controller,
       onChanged: widget.bone.inTmpValue,
       focusNode: focusNode,
+      textInputAction: widget.textInputAction ?? (focusNode == null ? null : TextInputAction.next),
       decoration: widget.decoration.applyDefaults(Theme.of(context).inputDecorationTheme).copyWith(
             errorText: widget.nosy(_data.data1)?.text,
             errorMaxLines: widget.decoration.errorMaxLines ?? 2,

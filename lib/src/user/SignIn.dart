@@ -1,12 +1,10 @@
 import 'package:easy_blocs/src/skeletons/BlocProvider.dart';
-import 'package:easy_blocs/src/skeletons/ModelBase.dart';
 import 'package:easy_blocs/src/skeletons/Skeleton.dart';
 import 'package:easy_blocs/src/skeletons/button/Button.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/EmailField.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/PasswordField.dart';
 import 'package:easy_blocs/src/skeletons/form/base/ButtonField.dart';
-import 'package:easy_blocs/src/user/User.dart';
-import 'package:easy_blocs/src/utility.dart';
+import 'package:easy_blocs/src/user/Sign.dart';
 import 'package:flutter/foundation.dart';
 
 abstract class SignInBone extends Bone {
@@ -15,11 +13,11 @@ abstract class SignInBone extends Bone {
   ButtonFieldBone get buttonFieldBone;
 }
 
-class SignInSkeleton<U extends ModelBase> extends Skeleton implements SignInBone {
-  AsyncValueSetter<U> onResult;
-  UserBoneBase<U> userBone;
+class SignInSkeleton<R> extends Skeleton implements SignInBone {
+  AsyncValueSetter<R> onResult;
+  SignBoneBase<dynamic, R> signBone;
 
-  SignInSkeleton([this.userBone]) {
+  SignInSkeleton({@required this.signBone}) {
     _buttonFieldSkeleton.onSubmit = submit;
   }
 
@@ -41,18 +39,17 @@ class SignInSkeleton<U extends ModelBase> extends Skeleton implements SignInBone
   ButtonFieldBone get buttonFieldBone => _buttonFieldSkeleton;
 
   Future<ButtonState> submit() async {
-    assert(userBone != null);
+    assert(signBone != null);
     final res = await secureSignError(
-      userBone.inSignInWithEmailAndPassword(
+      signBone.inSignInWithEmailAndPassword(
         email: _emailFieldSkeleton.value,
         password: _passwordFieldSkeleton.value,
       ),
       adderEmailError: _emailFieldSkeleton.inSignError,
       adderPasswordError: _passwordFieldSkeleton.inSignError,
     );
-    if (!res) return ButtonState.enabled;
-    await onResult(await userBone.waitRegistrationLv(0));
-    return ButtonState.disabled;
+    await onResult(res);
+    return res == null ? ButtonState.enabled : ButtonState.disabled;
   }
 }
 

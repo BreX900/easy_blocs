@@ -1,13 +1,11 @@
 import 'package:easy_blocs/src/skeletons/BlocProvider.dart';
-import 'package:easy_blocs/src/skeletons/ModelBase.dart';
 import 'package:easy_blocs/src/skeletons/Skeleton.dart';
 import 'package:easy_blocs/src/skeletons/button/Button.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/EmailField.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/PasswordField.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/RepeatPasswordField.dart';
 import 'package:easy_blocs/src/skeletons/form/base/ButtonField.dart';
-import 'package:easy_blocs/src/user/User.dart';
-import 'package:easy_blocs/src/utility.dart';
+import 'package:easy_blocs/src/user/Sign.dart';
 import 'package:flutter/foundation.dart';
 
 abstract class SignUpBone extends Bone {
@@ -17,11 +15,11 @@ abstract class SignUpBone extends Bone {
   ButtonFieldBone get buttonFieldBone;
 }
 
-class SignUpSkeleton<U extends ModelBase> extends Skeleton implements SignUpBone {
-  AsyncValueSetter<U> onResult;
-  UserBoneBase<U> userBone;
+class SignUpSkeleton<R> extends Skeleton implements SignUpBone {
+  AsyncValueSetter<R> onResult;
+  SignBoneBase<dynamic, R> signBone;
 
-  SignUpSkeleton([this.userBone]) {
+  SignUpSkeleton({@required this.signBone}) {
     _buttonFieldSkeleton.onSubmit = submit;
     final passwordValidator = RepeatPasswordFieldValidator();
     _passwordFieldSkeleton.validators.add(passwordValidator.password);
@@ -49,18 +47,17 @@ class SignUpSkeleton<U extends ModelBase> extends Skeleton implements SignUpBone
   ButtonFieldBone get buttonFieldBone => _buttonFieldSkeleton;
 
   Future<ButtonState> submit() async {
-    assert(userBone != null);
+    assert(signBone != null);
     final res = await secureSignError(
-      userBone.inSignUpWithEmailAndPassword(
+      signBone.inSignUpWithEmailAndPassword(
         email: _emailFieldSkeleton.value,
         password: _passwordFieldSkeleton.value,
       ),
       adderEmailError: _emailFieldSkeleton.inSignError,
       adderPasswordError: _passwordFieldSkeleton.inSignError,
     );
-    if (!res) return ButtonState.enabled;
-    await onResult(await userBone.waitRegistrationLv(0));
-    return ButtonState.disabled;
+    await onResult(res);
+    return res == null ? ButtonState.enabled : ButtonState.disabled;
   }
 }
 

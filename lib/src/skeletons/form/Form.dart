@@ -191,12 +191,12 @@ abstract class FormBone implements Bone {
 
   Future<bool> validation();
   void save();
-  Future<void> submit(AsyncCallback worker);
+  Future<bool> submit(AsyncCallback worker);
 
   factory FormBone.of(BuildContext context) => BoneProvider.of(context);
 }
 
-class FormSkeleton extends Skeleton with FormBone, SafePeopleSkeleton {
+class FormSkeleton extends Skeleton with FormBone {
   final List<FieldBoneBase> _fields = [];
 
   Future<bool> validation() async {
@@ -218,13 +218,94 @@ class FormSkeleton extends Skeleton with FormBone, SafePeopleSkeleton {
     });
   }
 
-  Future<void> submit(AsyncCallback worker) async {
-    workInSafeArea(() async {
-      validation().then((res) async {
-        if (!await validation()) return null;
-        save();
-        await worker();
-      });
-    });
+  Future<bool> submit(AsyncCallback worker) async {
+    if (!await validation()) return false;
+    save();
+    await worker();
+    return true;
+  }
+}
+
+class FormProvider extends StatefulWidget {
+  final FormBone bone;
+  final Widget child;
+
+  const FormProvider({
+    Key key,
+    this.bone,
+    this.child,
+  }) : super(key: key);
+
+  @override
+  _FormProviderState createState() => _FormProviderState();
+}
+
+class _FormProviderState extends State<FormProvider> {
+  FormBone _form;
+  SafeAreaBone _safeArea;
+  FocuserBone _focuser;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.bone == null) _form = FormSkeleton();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newSafeArea = SafeAreaBone.of(context, true);
+    if (newSafeArea != null && _safeArea != null) {
+      (_safeArea).dispose();
+      _safeArea = null;
+    } else if (_safeArea == null) {
+      _safeArea = SafeAreaBone();
+    }
+    final newFocuser = FocuserBone.of(context, true);
+    if (newFocuser != null && _focuser != null) {
+      (_focuser as Skeleton).dispose();
+      _focuser = null;
+    } else if (_focuser == null) {
+      _focuser = FocuserSkeleton();
+    }
+    if (_focuser != null && _focuser is FocuserSkeleton)
+      (_focuser as FocuserSkeleton).focusScope = FocusScope.of(context);
+  }
+
+  @override
+  void didUpdateWidget(FormProvider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.bone == oldWidget.bone) return;
+    if (widget.bone == null) {
+      _form = FormSkeleton();
+    } else {
+      (_form as Skeleton).dispose();
+      _form = widget.bone;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_safeArea != null) _safeArea.dispose();
+    if (_focuser != null) (_focuser as Skeleton).dispose();
+    if (widget.bone == null) (_form as Skeleton).dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _safeArea == null && _focuser == null
+        ? BoneProvider<FormBone>(
+            bone: _form,
+            child: widget.child,
+          )
+        : BoneProviderTree(
+            boneProviders: [
+              BoneProvider<FormBone>.tree(_form),
+              if (_safeArea != null) BoneProvider<SafeAreaBone>.tree(_safeArea),
+              if (_focuser != null) BoneProvider<FocuserBone>.tree(_focuser),
+            ],
+            child: widget.child,
+          );
   }
 }

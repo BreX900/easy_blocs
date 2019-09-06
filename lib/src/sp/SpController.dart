@@ -17,9 +17,16 @@ class SpSkeleton extends Skeleton implements SpBone {
   Sp get sp => _spController.value;
   Stream<Sp> get outSp => _spController;
 
+  @override
+  void dispose() {
+    _spController.close();
+    super.dispose();
+  }
+
   void inWindow(Window window) {
     inMediaQueryData(MediaQueryData.fromWindow(window));
   }
+
   void inMediaQueryData(MediaQueryData data) {
     final newSp = Sp.fromMediaQueryData(data);
     if (sp == null) _spController.value = newSp;

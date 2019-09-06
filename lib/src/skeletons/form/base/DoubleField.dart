@@ -1,4 +1,4 @@
-//import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+//import 'package:easy_blocs/src/skeletons/Focuser.dart';
 //import 'package:easy_blocs/src/skeletons/form/base/Field.dart';
 //import 'package:flutter/material.dart';
 //import 'package:flutter/widgets.dart';

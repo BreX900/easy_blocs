@@ -33,63 +33,66 @@ enum PasswordSignError {
   NOT_SAME,
 }
 
-Future<bool> secureSignError<T>(
-    Future<T> future, {
-      void adderEmailError(EmailSignError error),
-      adderPasswordError(PasswordSignError error),
-    }) async {
+Future<T> secureSignError<T>(
+  Future<T> future, {
+  void adderEmailError(EmailSignError error),
+  adderPasswordError(PasswordSignError error),
+}) async {
   try {
-    await future;
-    return true;
+    return await future;
   } on EmailSignError catch (error) {
     adderEmailError(error);
   } on PasswordSignError catch (error) {
     adderPasswordError(error);
   }
-  return false;
+  return null;
 }
 
-abstract class UserBoneBase<U extends ModelBase> extends Bone {
-  Future<void> inSignInWithEmailAndPassword({@required String email, @required String password});
-  Future<void> inSignUpWithEmailAndPassword({@required String email, @required String password});
-  Future<U> waitRegistrationLv(int registrationLv);
+abstract class SignBoneBase<U, R> extends Bone {
+  Future<U> getCurrentUser();
+  Future<R> inSignInWithEmailAndPassword({@required String email, @required String password});
+  Future<R> inSignUpWithEmailAndPassword({@required String email, @required String password});
 }
 
-abstract class UserSkeletonBase<U extends ModelBase> extends Skeleton implements UserBoneBase<U> {}
+abstract class SignSkeletonBase<U, R> extends Skeleton implements SignBoneBase<U, R> {}
 
-mixin UserBlocMixin<U extends ModelBase> on BlocBase {
-  UserBoneBase<U> get userBone;
+mixin SignBlocMixin<U, R> on BlocBase implements SignBoneBase<U, R> {
+  SignBoneBase<U, R> get signBone;
 
-  Future<void> inSignInWithEmailAndPassword({@required String email, @required String password}) {
-    return userBone.inSignInWithEmailAndPassword(email: email, password: password);
+  Future<U> getCurrentUser() => signBone.getCurrentUser();
+
+  Future<R> inSignInWithEmailAndPassword({@required String email, @required String password}) {
+    return signBone.inSignInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future<void> inSignUpWithEmailAndPassword({@required String email, @required String password}) {
-    return userBone.inSignUpWithEmailAndPassword(email: email, password: password);
+  Future<R> inSignUpWithEmailAndPassword({@required String email, @required String password}) {
+    return signBone.inSignUpWithEmailAndPassword(email: email, password: password);
   }
-
-  Future<U> waitRegistrationLv(int registrationLv) => userBone.waitRegistrationLv(registrationLv);
 }
+
+///
+/// PROVIDERS
+///
 
 typedef Future<void> InSignInGoogle({@required String idToken, @required String accessToken});
 
-abstract class SignProvidersBone<U extends ModelBase> implements UserBoneBase<U> {
-  Future<void> inSignInGoogle({@required String idToken, @required String accessToken});
-  Future<void> inSignInFacebook({@required String accessToken});
-  Future<void> inSignInTwitter({@required String authToken, @required String authTokenSecret});
+abstract class SignProvidersBone<U, R> implements SignBoneBase<U, R> {
+  Future<R> inSignInGoogle({@required String idToken, @required String accessToken});
+  Future<R> inSignInFacebook({@required String accessToken});
+  Future<R> inSignInTwitter({@required String authToken, @required String authTokenSecret});
 }
 
-mixin SignProvidersBlocMixin<U extends ModelBase> on BlocBase implements SignProvidersBone<U> {
-  SignProvidersBone<U> get userBone;
-  Future<void> inSignInGoogle({@required String idToken, @required String accessToken}) {
+mixin SignProvidersBlocMixin<U, R> on BlocBase implements SignProvidersBone<U, R> {
+  SignProvidersBone<U, R> get userBone;
+  Future<R> inSignInGoogle({@required String idToken, @required String accessToken}) {
     return userBone.inSignInGoogle(idToken: idToken, accessToken: accessToken);
   }
 
-  Future<void> inSignInFacebook({@required String accessToken}) {
+  Future<R> inSignInFacebook({@required String accessToken}) {
     return userBone.inSignInFacebook(accessToken: accessToken);
   }
 
-  Future<void> inSignInTwitter({@required String authToken, @required String authTokenSecret}) {
+  Future<R> inSignInTwitter({@required String authToken, @required String authTokenSecret}) {
     return userBone.inSignInTwitter(authToken: authToken, authTokenSecret: authTokenSecret);
   }
 }

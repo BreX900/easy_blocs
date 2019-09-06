@@ -2,7 +2,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:easy_blocs/easy_blocs.dart';
-import 'package:easy_blocs/src/skeletons/AutomaticFocus.dart';
+import 'package:easy_blocs/src/skeletons/Focuser.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/material.dart';
@@ -73,9 +73,6 @@ class ImageFieldSkeleton extends FieldSkeleton<UnmodifiableListView<ImageFieldDa
 
   final int maxImages;
 
-  @override // TODO: Add FieldState
-  void inFieldState(FieldState state) {}
-
   Future<void> create(File newImage) async {
     final newTmpValue = tmpValue.toList()..add(ImageFieldData.file(newImage));
     inTmpValue(UnmodifiableListView(newTmpValue));
@@ -132,8 +129,7 @@ class ImageFieldShell extends StatefulWidget implements FieldShell, FocusShell {
   _ImageFieldShellState createState() => _ImageFieldShellState();
 }
 
-class _ImageFieldShellState extends FieldState<ImageFieldShell>
-    with FocusShellStateMixin {
+class _ImageFieldShellState extends FieldState<ImageFieldShell> with FocusShellStateMixin {
   void _onCreate([ImageFieldData data]) {
     showInputImageDialog(
       context: context,

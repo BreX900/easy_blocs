@@ -51,3 +51,5 @@ mixin BlocScreenStateMixin<WidgetType extends StatefulWidget, BlocType extends B
 
   Future<void> eventListener(event);
 }
+
+abstract class ScreenState<WidgetType extends StatefulWidget> extends State<WidgetType> {}
