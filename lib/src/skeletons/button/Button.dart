@@ -83,7 +83,7 @@ class ButtonShell extends ButtonShellBuilder {
     this.splashColor,
     this.padding,
     this.shape,
-    this.clipBehavior,
+    this.clipBehavior: Clip.none,
     this.focusNode,
     this.child,
   }) : super(
@@ -94,7 +94,7 @@ class ButtonShell extends ButtonShellBuilder {
               if (state == ButtonState.working)
                 return const Center(
                   child: const Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(4.0),
                     child: const CircularProgressIndicator(),
                   ),
                 );

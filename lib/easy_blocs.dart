@@ -96,3 +96,5 @@ export 'package:easy_blocs/src/rxdart/ObservableBuilder.dart';
 export 'src/json.dart';
 
 export 'src/utility.dart';
+
+export 'package:rxdart/rxdart.dart';

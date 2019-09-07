@@ -63,7 +63,7 @@ class ButtonFieldShell extends StatefulWidget implements FieldShell {
     this.splashColor,
     this.padding,
     this.shape,
-    this.clipBehavior,
+    this.clipBehavior: Clip.none,
     this.focusNode,
     this.child,
   }) : super(key: key);

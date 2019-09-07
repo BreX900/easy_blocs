@@ -371,8 +371,10 @@ mixin _WaitingWidgets<D> on ObservableState<D> {
   Widget toWaitSliver() {
     return const SliverPadding(
       padding: const EdgeInsets.all(8.0),
-      sliver: const SliverToBoxAdapter(
-        child: const CircularProgressIndicator(),
+      sliver: SliverToBoxAdapter(
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:easy_blocs/easy_blocs.dart';
 import 'package:flutter/widgets.dart';
 
@@ -27,24 +29,41 @@ class BlocProvider {
 abstract class BlocBase extends Skeleton {}
 
 abstract class BlocEvent extends BlocBase {
-  Stream get outEvent;
+  void dispose() {
+    super.dispose();
+    _onEventCompleter = null;
+  }
+
+  Completer<AsyncValueSetter> _onEventCompleter = Completer();
+  set onEvent(AsyncValueSetter onEvent) {
+    if (_onEventCompleter == null) throw "Is closed";
+    if (_onEventCompleter.isCompleted) {
+      _onEventCompleter = null;
+      return;
+    }
+    _onEventCompleter.complete(onEvent);
+  }
+
+  @protected
+  Future<void> addEvent(event) {
+    assert(_onEventCompleter != null);
+    if (_onEventCompleter == null) return null;
+    return _onEventCompleter.future.then((onEvent) => onEvent(event));
+  }
 }
 
 mixin BlocScreenStateMixin<WidgetType extends StatefulWidget, BlocType extends BlocEvent>
     on State<WidgetType> {
   final BlocType bloc = BlocProvider.of<BlocType>();
 
-  StreamSubscription _subscription;
-
   @override
   void initState() {
     super.initState();
-    _subscription = bloc.outEvent.listen(eventListener);
+    bloc.onEvent = eventListener;
   }
 
   @override
   void dispose() {
-    _subscription.cancel();
     BlocProvider.dispose<BlocType>();
     super.dispose();
   }
@@ -52,4 +71,5 @@ mixin BlocScreenStateMixin<WidgetType extends StatefulWidget, BlocType extends B
   Future<void> eventListener(event);
 }
 
-abstract class ScreenState<WidgetType extends StatefulWidget> extends State<WidgetType> {}
+abstract class ScreenState<WidgetType extends StatefulWidget, BlocType extends BlocEvent>
+    extends State<WidgetType> with BlocScreenStateMixin<WidgetType, BlocType> {}
