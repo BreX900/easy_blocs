@@ -1,6 +1,5 @@
 import 'package:easy_blocs/src/skeletons/BlocProvider.dart';
 import 'package:easy_blocs/src/skeletons/Skeleton.dart';
-import 'package:easy_blocs/src/skeletons/button/Button.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/EmailField.dart';
 import 'package:easy_blocs/src/skeletons/form/advanced/PasswordField.dart';
 import 'package:easy_blocs/src/skeletons/form/base/ButtonField.dart';
@@ -38,7 +37,7 @@ class SignInSkeleton<R> extends Skeleton implements SignInBone {
   final ButtonFieldSkeleton _buttonFieldSkeleton = ButtonFieldSkeleton();
   ButtonFieldBone get buttonFieldBone => _buttonFieldSkeleton;
 
-  Future<ButtonState> submit() async {
+  Future<bool> submit() async {
     assert(signBone != null);
     final res = await secureSignError(
       signBone.inSignInWithEmailAndPassword(
@@ -49,7 +48,7 @@ class SignInSkeleton<R> extends Skeleton implements SignInBone {
       adderPasswordError: _passwordFieldSkeleton.inSignError,
     );
     await onResult(res);
-    return res == null ? ButtonState.enabled : ButtonState.disabled;
+    return res == null ? true : false;
   }
 }
 

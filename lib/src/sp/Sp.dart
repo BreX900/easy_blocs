@@ -16,6 +16,9 @@ class Sp {
   }) {
     assert(mediaQueryData != null);
     if (mediaQueryData.size.isEmpty) return null;
+
+    //print("W: $width, H: $height");
+
     return Sp(
       width: width,
       height: height,
@@ -117,7 +120,7 @@ class Sp {
   ///@param allowFontScaling false。
   ///@param allowFontScaling Specifies whether fonts should scale to respect Text Size accessibility settings. The default is false.
   get(double fontSize) =>
-      allowFontScaling ? getWidth(fontSize) : getWidth(fontSize) / textScaleFactor;
+      allowFontScaling ? getHeight(fontSize) : getHeight(fontSize) / textScaleFactor;
 
   @override
   String toString() {

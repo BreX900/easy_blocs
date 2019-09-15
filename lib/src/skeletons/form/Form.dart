@@ -9,7 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class FieldShell implements StatefulWidget {
-  FieldBoneBase get bone;
+  FieldBone get bone;
 }
 
 mixin FieldStateMixin<WidgetType extends FieldShell> on State<WidgetType> {
@@ -45,56 +45,36 @@ mixin FieldStateMixin<WidgetType extends FieldShell> on State<WidgetType> {
 abstract class FieldState<WidgetType extends FieldShell> extends State<WidgetType>
     with FieldStateMixin {}
 
-abstract class FieldBoneBase extends Bone implements SafePeopleSkeleton {}
-
-mixin FieldSkeletonBase implements FieldBoneBase {}
-
-abstract class FieldBone<V> extends FieldBoneBase {
+abstract class FieldBone<V> extends Bone implements SafePeopleSkeleton {
   Stream<V> get outValue;
   Stream<V> get outTmpValue;
   Stream<FieldError> get outError;
   void inTmpValue(V tmpValue);
-  Future<bool> _validation();
-  void _save();
+  Future<bool> validation();
+  void save();
 }
 
-abstract class FieldSkeleton<V> extends Skeleton
-    with SafePeopleSkeleton, FieldSkeletonBase
-    implements FieldBone<V> {
+abstract class FieldSkeletonBase<V> extends Skeleton with SafePeopleSkeleton implements FieldBone<V> {
   final List<FieldValidator<V>> validators;
 
-  FieldSkeleton({
-    V seed,
+  FieldSkeletonBase({
     List<FieldValidator<V>> validators,
-  })  : _valueController = BehaviorSubject.seeded(seed),
-        _tmpValueController = BehaviorSubject.seeded(seed),
-        this.validators = validators ?? [];
-
-  final BehaviorSubject<V> _valueController;
-  Stream<V> get outValue => _valueController;
-  V get value => _valueController.value;
+  }) : this.validators = validators ?? [];
+  @mustCallSuper
   void inValue(V value) {
-    _valueController.add(value);
     inTmpValue(value);
   }
-
-  final BehaviorSubject<V> _tmpValueController;
-  Stream<V> get outTmpValue => _tmpValueController;
-  V get tmpValue => _tmpValueController.value;
+  V get tmpValue;
   @override
-  void inTmpValue(V value) => _tmpValueController.add(value);
+  void inTmpValue(V value);
 
-  final BehaviorSubject<FieldError> _errorController = BehaviorSubject.seeded(null);
-  Stream<FieldError> get outError => _errorController;
-  FieldError get error => _errorController.value;
-  void inError(FieldError error) {
-    if (_errorController.value != error) _errorController.add(error);
-  }
+  FieldError get error;
+  void inError(FieldError error);
 
   V _valueForSave;
 
   @override
-  Future<bool> _validation() {
+  Future<bool> validation() {
     _valueForSave = tmpValue;
     return () async {
       try {
@@ -115,7 +95,37 @@ abstract class FieldSkeleton<V> extends Skeleton
   }
 
   @override
-  void _save() => inValue(_valueForSave);
+  void save() => inValue(_valueForSave);
+}
+
+abstract class FieldSkeleton<V> extends FieldSkeletonBase<V> implements FieldBone<V> {
+  FieldSkeleton({
+    V seed,
+    List<FieldValidator<V>> validators,
+  })  : _valueController = BehaviorSubject.seeded(seed),
+        _tmpValueController = BehaviorSubject.seeded(seed),
+        super(validators: validators);
+
+  final BehaviorSubject<V> _valueController;
+  Stream<V> get outValue => _valueController;
+  V get value => _valueController.value;
+  void inValue(V value) {
+    _valueController.add(value);
+    super.inValue(value);
+  }
+
+  final BehaviorSubject<V> _tmpValueController;
+  Stream<V> get outTmpValue => _tmpValueController;
+  V get tmpValue => _tmpValueController.value;
+  @override
+  void inTmpValue(V value) => _tmpValueController.add(value);
+
+  final BehaviorSubject<FieldError> _errorController = BehaviorSubject.seeded(null);
+  Stream<FieldError> get outError => _errorController;
+  FieldError get error => _errorController.value;
+  void inError(FieldError error) {
+    if (_errorController.value != error) _errorController.add(error);
+  }
 }
 
 typedef InputDecoration FieldDecorator<S>(S fieldBone);
@@ -181,48 +191,38 @@ class ValueFieldValidator {
 /// Form Controller
 
 abstract class FormBone implements Bone {
-  List<FieldBoneBase> get _fields;
-  void addField(FieldBoneBase field) {
+  List<FieldBone> get _fields;
+  void addField(FieldBone field) {
     assert(field != null);
     _fields.add(field);
   }
 
-  void removeField(FieldBoneBase field) => _fields.remove(field);
+  void removeField(FieldBone field) => _fields.remove(field);
 
   Future<bool> validation();
   void save();
-  Future<bool> submit(AsyncCallback worker);
 
   factory FormBone.of(BuildContext context) => BoneProvider.of(context);
 }
 
 class FormSkeleton extends Skeleton with FormBone {
-  final List<FieldBoneBase> _fields = [];
+  final List<FieldBone> _fields = [];
 
   Future<bool> validation() async {
     bool isValid = true;
 
     await Future.wait(_fields.map((field) async {
-      if (field is FieldBone) {
-        final res = await field._validation();
-        if (!res) isValid = false;
-      }
+      if (!await field.validation()) isValid = false;
     }).toList());
+    print("................... $isValid");
 
     return isValid;
   }
 
   void save() {
     _fields.forEach((field) {
-      if (field is FieldBone) field._save();
+      field.save();
     });
-  }
-
-  Future<bool> submit(AsyncCallback worker) async {
-    if (!await validation()) return false;
-    save();
-    await worker();
-    return true;
   }
 }
 

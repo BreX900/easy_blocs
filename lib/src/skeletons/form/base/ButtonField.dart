@@ -1,34 +1,34 @@
 import 'dart:async';
 
-import 'package:easy_blocs/src/skeletons/Skeleton.dart';
 import 'package:easy_blocs/src/skeletons/button/Button.dart';
 import 'package:easy_blocs/src/skeletons/form/Form.dart';
 import 'package:easy_widget/easy_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-abstract class ButtonFieldBone extends Bone implements FieldBoneBase, ButtonBone {
+abstract class ButtonFieldBone extends ButtonBone {
   set formBone(FormBone formBone);
   FormBone _formBone;
 }
 
-class ButtonFieldSkeleton extends ButtonSkeleton with FieldSkeletonBase implements ButtonFieldBone {
+class ButtonFieldSkeleton extends ButtonSkeleton implements ButtonFieldBone {
   FormBone _formBone;
 
-  @override
   set formBone(FormBone formBone) => _formBone = formBone;
 
   @override
   Future<void> onPressed({AsyncCallback starter, AsyncCallback completed}) async {
     assert(_formBone != null);
-    final res = await _formBone.submit(() async {
-      inState(await onSubmit());
-    });
-    inState(res ? ButtonState.disabled : ButtonState.enabled);
+    if (!await _formBone.validation()) {
+      inState(true);
+      return;
+    }
+    _formBone.save();
+    inState(await onSubmit());
   }
 }
 
-class ButtonFieldShell extends StatefulWidget implements FieldShell {
+class ButtonFieldShell extends StatefulWidget {
   final ButtonFieldBone bone;
 
   final ButtonDesign buttonDesign;
@@ -72,7 +72,7 @@ class ButtonFieldShell extends StatefulWidget implements FieldShell {
   _ButtonFieldShellState createState() => _ButtonFieldShellState();
 }
 
-class _ButtonFieldShellState extends FieldState<ButtonFieldShell> {
+class _ButtonFieldShellState extends State<ButtonFieldShell> {
   FormBone _formBone;
 
   @override

@@ -30,13 +30,11 @@ class RepositoryBlocBase extends BlocBase with MixinTranslatorBone, MixinSpManag
     @required this.spSkeleton,
   });
 
-  factory RepositoryBlocBase.fromData(RepositoryDataCreator data) {
-    return RepositoryBlocBase(
-      sharedPreferences: data.sharedPreferences,
-      translatorSkeleton: data.translatorSkeleton,
-      spSkeleton: data.spSkeleton,
-    );
-  }
+  RepositoryBlocBase.fromData({@required RepositoryDataCreator data}) :
+      assert(data != null),
+      this.sharedPreferences = data.sharedPreferences,
+        this.translatorSkeleton = data.translatorSkeleton,
+        this.spSkeleton= data.spSkeleton;
 
   factory RepositoryBlocBase.of() => BlocProvider.of<RepositoryBlocBase>();
 }

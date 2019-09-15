@@ -34,7 +34,7 @@ class IconButtonShell extends ButtonShellBuilder {
   }) : super(
             key: key,
             bone: bone,
-            builder: ((BuildContext context, ButtonState state) {
+            builder: ((BuildContext context, bool status) {
               return IconButton(
                 iconSize: iconSize,
                 padding: padding,
@@ -47,7 +47,7 @@ class IconButtonShell extends ButtonShellBuilder {
                 disabledColor: disabledColor,
                 focusNode: focusNode,
                 tooltip: tooltip,
-                onPressed: state == ButtonState.enabled ? bone.pressed : null,
+                onPressed: status ? bone.pressed : null,
                 icon: icon,
               );
             }));

@@ -7,9 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-typedef Widget _ButtonShellBuilder(BuildContext context, ButtonState state);
+typedef Widget _ButtonShellBuilder(BuildContext context, bool state);
 
-class ButtonShellBuilder extends StatefulWidget implements ObservableListener<ButtonState> {
+class ButtonShellBuilder extends StatefulWidget implements ObservableListener<bool> {
   final ButtonBone bone;
   final bool isEnableSafeArea;
   final _ButtonShellBuilder builder;
@@ -21,7 +21,7 @@ class ButtonShellBuilder extends StatefulWidget implements ObservableListener<Bu
     @required this.builder,
   }) : super(key: key);
 
-  Stream<ButtonState> get stream => bone.outState;
+  Stream<bool> get stream => bone.outStatus;
 
   @override
   _ButtonShellStateBuilder createState() => _ButtonShellStateBuilder();
@@ -30,8 +30,8 @@ class ButtonShellBuilder extends StatefulWidget implements ObservableListener<Bu
 class _ButtonShellStateBuilder extends State<ButtonShellBuilder>
     with
         SafePeopleState<ButtonShellBuilder>,
-        ObservableListenerStateMixin<ButtonShellBuilder, ButtonState> {
-  ButtonState _state;
+        ObservableListenerStateMixin<ButtonShellBuilder, bool> {
+  bool _state;
 
   @override
   bool get isEnableSafeArea => widget.isEnableSafeArea;
@@ -40,7 +40,7 @@ class _ButtonShellStateBuilder extends State<ButtonShellBuilder>
   SafePeopleBone get people => widget.bone;
 
   @override
-  void onChangeObservableState(ObservableState<ButtonState> update) {
+  void onChangeObservableState(ObservableState<bool> update) {
     setState(() => _state = update.data);
   }
 
@@ -90,8 +90,8 @@ class ButtonShell extends ButtonShellBuilder {
             key: key,
             bone: bone,
             isEnableSafeArea: isEnableSafeArea,
-            builder: ((BuildContext context, ButtonState state) {
-              if (state == ButtonState.working)
+            builder: ((BuildContext context, bool status) {
+              if (status == null)
                 return const Center(
                   child: const Padding(
                     padding: const EdgeInsets.all(4.0),
@@ -101,7 +101,7 @@ class ButtonShell extends ButtonShellBuilder {
 
               return Button.basic(
                 buttonDesign: buttonDesign,
-                onPressed: state == ButtonState.enabled ? bone.pressed : null,
+                onPressed: status ? bone.pressed : null,
                 textTheme: textTheme,
                 textColor: textColor,
                 disabledTextColor: disabledTextColor,
@@ -118,53 +118,47 @@ class ButtonShell extends ButtonShellBuilder {
             }));
 }
 
-enum ButtonState {
-  enabled,
-  disabled,
-  working,
-}
-
 abstract class ButtonBone extends Bone implements SafePeopleBone {
-  Stream<ButtonState> get outState;
+  Stream<bool> get outStatus;
   Future<void> pressed({AsyncCallback starter, AsyncCallback completed});
 }
 
 abstract class ButtonSkeletonBase extends Skeleton with SafePeopleSkeleton implements ButtonBone {
   ButtonSkeletonBase({
-    ButtonState state: ButtonState.enabled,
-  }) : this._stateController = BehaviorSubject.seeded(state, sync: true);
+    bool status: true,
+  }) : this._statusController = BehaviorSubject.seeded(status, sync: true);
 
   @override
   void dispose() {
-    _stateController.close();
+    _statusController.close();
     super.dispose();
   }
 
-  final BehaviorSubject<ButtonState> _stateController;
-  Stream<ButtonState> get outState => _stateController;
+  final BehaviorSubject<bool> _statusController;
+  Stream<bool> get outStatus => _statusController;
 
   Future<void> onPressed({AsyncCallback starter, AsyncCallback completed});
 
   /// TODO: Protected ???
-  void inState(ButtonState state) => _stateController.add(state);
+  void inState(bool status) => _statusController.add(status);
 
   /// Not ovveride
   @override
   Future<void> pressed({AsyncCallback starter, AsyncCallback completed}) async {
     return workInSafeArea(() async {
-      _stateController.add(ButtonState.working);
+      _statusController.add(null);
       onPressed(starter: starter, completed: completed).then((_) {}, onError: (error) {
-        _stateController.add(ButtonState.enabled);
+        _statusController.add(true);
       });
     });
   }
 }
 
 class ButtonSkeleton extends ButtonSkeletonBase implements ButtonBone {
-  AsyncValueGetter<ButtonState> onSubmit;
+  AsyncValueGetter<bool> onSubmit;
   ButtonSkeleton({
-    ButtonState state: ButtonState.enabled,
-  }) : super(state: state);
+    bool status: true,
+  }) : super(status: status);
 
   @override
   Future<void> onPressed({AsyncCallback starter, AsyncCallback completed}) async {
