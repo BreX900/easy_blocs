@@ -147,7 +147,7 @@ abstract class ButtonSkeletonBase extends Skeleton with SafePeopleSkeleton imple
   Future<void> pressed({AsyncCallback starter, AsyncCallback completed}) async {
     return workInSafeArea(() async {
       _statusController.add(null);
-      onPressed(starter: starter, completed: completed).then((_) {}, onError: (error) {
+      await onPressed(starter: starter, completed: completed).then((_) {}, onError: (error) {
         _statusController.add(true);
       });
     });

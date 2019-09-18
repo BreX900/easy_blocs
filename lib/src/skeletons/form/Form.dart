@@ -54,7 +54,9 @@ abstract class FieldBone<V> extends Bone implements SafePeopleSkeleton {
   void save();
 }
 
-abstract class FieldSkeletonBase<V> extends Skeleton with SafePeopleSkeleton implements FieldBone<V> {
+abstract class FieldSkeletonBase<V> extends Skeleton
+    with SafePeopleSkeleton
+    implements FieldBone<V> {
   final List<FieldValidator<V>> validators;
 
   FieldSkeletonBase({
@@ -64,6 +66,7 @@ abstract class FieldSkeletonBase<V> extends Skeleton with SafePeopleSkeleton imp
   void inValue(V value) {
     inTmpValue(value);
   }
+
   V get tmpValue;
   @override
   void inTmpValue(V value);
@@ -214,15 +217,12 @@ class FormSkeleton extends Skeleton with FormBone {
     await Future.wait(_fields.map((field) async {
       if (!await field.validation()) isValid = false;
     }).toList());
-    print("................... $isValid");
 
     return isValid;
   }
 
   void save() {
-    _fields.forEach((field) {
-      field.save();
-    });
+    _fields.forEach((field) => field.save());
   }
 }
 

@@ -124,7 +124,7 @@ class Sp {
 
   @override
   String toString() {
-    return 'Sp(width: $width, height: $height, screenWidthDp: $screenWidthDp, screenHeightDp: $screenHeightDp, test: 18-${get(18)})';
+    return 'Sp(width: $width, height: $height, screenSize: $screenSize, screenWidthDp: $screenWidthDp, screenHeightDp: $screenHeightDp, test: 18-${get(18)})';
   }
 
   static Sp fromJson(Map json) => _$SpFromJson(json);

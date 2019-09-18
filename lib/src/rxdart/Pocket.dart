@@ -95,14 +95,12 @@ class OnceWriters extends ListWriters {
   @override
   void writer() {
     _subscriptions.addAll(_writers.map((source) => source()));
-    _writers = [];
   }
 }
 
 class RepeatWriters extends ListWriters {
   @override
   void writer() {
-    unsubscribe();
     _subscriptions.addAll(_writers.map((source) => source()));
   }
 }
@@ -127,8 +125,8 @@ class TinyPocket<T> {
     };
     _controller.onCancel = () async {
       if (onCancel != null) onCancel();
-      _onceWriters.dispose();
-      _repeatWriters.dispose();
+      _onceWriters.unsubscribe();
+      _repeatWriters.unsubscribe();
       _writers.dispose();
     };
   }

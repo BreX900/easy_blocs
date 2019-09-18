@@ -48,6 +48,9 @@ Future<T> secureSignError<T>(
   return null;
 }
 
+typedef Future<R> InSignInWithEmailAndPassword<R>(
+    {@required String email, @required String password});
+
 abstract class SignBoneBase<U, R> extends Bone {
   Future<U> getCurrentUser();
   Future<R> inSignInWithEmailAndPassword({@required String email, @required String password});

@@ -41,52 +41,53 @@ class PasswordFieldSkeleton extends TextFieldSkeleton implements PasswordFieldBo
   }
 }
 
-class PasswordFieldShell extends TextFieldShell {
+class PasswordFieldShell extends ObservableBuilder<bool> {
   PasswordFieldShell({
     Key key,
     @required PasswordFieldBone bone,
     FocuserBone mapFocusBone,
     FocusNode focusNode,
     FieldErrorTranslator nosy: noisy,
-    InputDecoration decoration,
+    InputDecoration decoration: const InputDecoration(),
     TextInputAction textInputAction,
   }) : super(
           key: key,
-          bone: bone,
-          mapFocusBone: mapFocusBone,
-          focusNode: focusNode,
-          nosy: nosy,
-          decoration: decoration ?? decorator(bone),
-          textInputAction: textInputAction,
+          initialData: true,
+          stream: bone.outSheet.map((sheet) => sheet.obscureText),
+          builder: (context, isObscuredText, update) {
+            return TextFieldShell(
+              bone: bone,
+              mapFocusBone: mapFocusBone,
+              focusNode: focusNode,
+              nosy: nosy,
+              decoration: decorator(decoration, bone: bone, obscuredText: isObscuredText),
+              textInputAction: textInputAction,
+            );
+          },
         );
 
   static InputDecoration decorator(
-    PasswordFieldBone bone, {
-    TranslationsInputDecoration decoration: const TranslationsInputDecoration(),
-    bool prefixIcon: true,
-    hintText: true,
+    InputDecoration decoration, {
+    @required PasswordFieldBone bone,
+    @required bool obscuredText,
   }) {
-    return decoration.copyWithTranslations(
-      prefixIcon: prefixIcon
-          ? ObservableBuilder<TextFieldSheet>(
-              builder: (_, sheet, update) {
-                return sheet.obscureText
-                    ? IconButton(
-                        onPressed: () => bone.inObscureText(false),
-                        icon: const Icon(Icons.lock),
-                      )
-                    : IconButton(
-                        onPressed: () => bone.inObscureText(true),
-                        icon: const Icon(Icons.lock_outline),
-                      );
-              },
-              stream: bone.outSheet)
-          : null,
-      translationsHintText: hintText
-          ? TranslationsConst(
+    return decoration.copyWith(
+      prefixIcon: decoration.prefixIcon != null
+          ? null
+          : (obscuredText
+              ? IconButton(
+                  onPressed: () => bone.inObscureText(false),
+                  icon: const Icon(Icons.lock),
+                )
+              : IconButton(
+                  onPressed: () => bone.inObscureText(true),
+                  icon: const Icon(Icons.lock_outline),
+                )),
+      hintText: decoration.hintText != null
+          ? null
+          : const TranslationsConst(
               en: "Password",
-            )
-          : null,
+            ).text,
     );
   }
 

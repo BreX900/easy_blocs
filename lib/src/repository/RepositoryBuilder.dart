@@ -149,6 +149,9 @@ class RepositoryData {
       screen: screen ?? this.screen,
     );
   }
+  @override
+  String toString() => "$runtimeType(locale: $locale, sp: $sp"
+      ", sharedPreferences: $sharedPreferences, screen: $screen)";
 }
 
 class RepositoryDataCreator {

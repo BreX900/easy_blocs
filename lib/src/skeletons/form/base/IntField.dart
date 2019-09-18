@@ -51,7 +51,6 @@
 //  static const min = FieldError("MIN");
 //}
 
-
 //class IntFieldShell extends StatefulWidget implements FocusShell {
 //  final IntFieldBone fieldBone;
 //  @override

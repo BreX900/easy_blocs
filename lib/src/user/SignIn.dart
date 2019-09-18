@@ -14,9 +14,9 @@ abstract class SignInBone extends Bone {
 
 class SignInSkeleton<R> extends Skeleton implements SignInBone {
   AsyncValueSetter<R> onResult;
-  SignBoneBase<dynamic, R> signBone;
+  InSignInWithEmailAndPassword<R> signer;
 
-  SignInSkeleton({@required this.signBone}) {
+  SignInSkeleton({@required this.signer}) {
     _buttonFieldSkeleton.onSubmit = submit;
   }
 
@@ -38,9 +38,9 @@ class SignInSkeleton<R> extends Skeleton implements SignInBone {
   ButtonFieldBone get buttonFieldBone => _buttonFieldSkeleton;
 
   Future<bool> submit() async {
-    assert(signBone != null);
+    assert(signer != null);
     final res = await secureSignError(
-      signBone.inSignInWithEmailAndPassword(
+      signer(
         email: _emailFieldSkeleton.value,
         password: _passwordFieldSkeleton.value,
       ),

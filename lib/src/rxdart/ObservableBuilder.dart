@@ -97,7 +97,7 @@ typedef Widget ObservableStateBuilder<V>(BuildContext context, ObservableState<V
 typedef Widget ObservableValueBuilder<V>(BuildContext context, V value, ObservableState<V> state);
 
 class ObservableBuilder<V> extends StatefulWidget implements ObservableListener<V> {
-  ObservableBuilder({
+  const ObservableBuilder({
     Key key,
     this.initialData,
     @required this.stream,

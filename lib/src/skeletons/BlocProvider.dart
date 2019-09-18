@@ -17,7 +17,7 @@ class BlocProvider {
 
   static Skeleton of<TypeSkeleton extends BlocBase>([bool allowNull = false]) {
     final skeleton = _cache[TypeSkeleton];
-    assert(allowNull || skeleton != null, "Must [init]");
+    assert(allowNull || skeleton != null, "Use [$TypeSkeleton.init()] for uinitialization");
     return skeleton;
   }
 
