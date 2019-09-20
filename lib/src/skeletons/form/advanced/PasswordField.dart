@@ -93,6 +93,11 @@ class PasswordFieldShell extends ObservableBuilder<bool> {
 
   static TranslationsConst noisy(FieldError error) {
     switch (error) {
+      case PasswordFieldError.short:
+        return const TranslationsConst(
+          it: "Deve avere almeno 8 caratteri",
+          en: "Must have at least 8 characters",
+        );
       case PasswordFieldError.invalid:
         return const TranslationsConst(
             it: "Deve avere almeno 8 caratteri, un numero, un simbolo, una lettera minuscola e una maiuscola.",

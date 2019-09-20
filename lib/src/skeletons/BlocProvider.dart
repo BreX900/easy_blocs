@@ -47,6 +47,7 @@ abstract class BlocEvent extends BlocBase {
   @protected
   Future<void> addEvent(event) {
     assert(_onEventCompleter != null);
+    assert(event != null);
     if (_onEventCompleter == null) return null;
     return _onEventCompleter.future.then((onEvent) => onEvent(event));
   }

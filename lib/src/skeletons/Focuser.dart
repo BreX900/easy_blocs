@@ -23,7 +23,11 @@ class FocuserSkeleton extends Skeleton implements FocuserBone {
 
   @override
   Future<void> nextFocus(FocusNode pointOfFocus) async {
-    final nextPoint = _pointsOfFocus[_pointsOfFocus.indexOf(pointOfFocus) + 1];
+    final indexNext = _pointsOfFocus.indexOf(pointOfFocus) + 1;
+    
+    if (indexNext >= _pointsOfFocus.length) return;
+
+    final nextPoint = _pointsOfFocus[indexNext];
 
     if (nextPoint != null)
       Future.delayed(Duration(milliseconds: 500), () => focusScope.requestFocus(nextPoint));

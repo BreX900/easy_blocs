@@ -26,9 +26,12 @@ class RepositoryBuilder<R extends RepositoryBlocBase> extends StatefulWidget {
 
   final Widget splashWidget;
 
+  final Locale locale;
+
   RepositoryBuilder({
     Key key,
     @required this.creator,
+    this.locale,
 
     /// Passagli il RepositoryBlocBase senza ereditare.
     @required this.worker,
@@ -49,12 +52,13 @@ class _RepositoryBuilderState<R extends RepositoryBlocBase> extends State<Reposi
   bool isPerform;
   RepositoryData _data;
 
-  TranslatorSkeleton _translatorSkeleton = TranslatorSkeleton();
+  TranslatorSkeleton _translatorSkeleton;
   SpSkeleton _spSkeleton = SpSkeleton();
 
   @override
   void initState() {
     super.initState();
+    _translatorSkeleton = TranslatorSkeleton(locale: widget.locale ?? Locale('en'));
     _dataSubscriber = ObservableSubscriber(_dataListener);
   }
 
@@ -149,6 +153,7 @@ class RepositoryData {
       screen: screen ?? this.screen,
     );
   }
+
   @override
   String toString() => "$runtimeType(locale: $locale, sp: $sp"
       ", sharedPreferences: $sharedPreferences, screen: $screen)";
